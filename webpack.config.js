@@ -12,6 +12,7 @@ module.exports = {
   },
   resolve: {
     fallback: { path: require.resolve("path-browserify") },
+    preferRelative: true,
   },
   devServer: {
     static: {

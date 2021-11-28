@@ -2,10 +2,50 @@ import { rollup } from "rollup";
 import * as hypothetical from "rollup-plugin-hypothetical";
 import { compile_to_js } from "gleam-wasm";
 
+import { EditorState, basicSetup } from "@codemirror/basic-setup";
+import { EditorView, keymap } from "@codemirror/view";
+import { indentWithTab } from "@codemirror/commands";
+import { javascript } from "@codemirror/lang-javascript";
+
+// import { gleam } from "./gleam_lang";
+
+const initialSource = `import gleam/io
+
+pub fn main() {
+  io.print("hi")
+  42
+}`;
+
+const source = localStorage.getItem("gleam-source") || initialSource;
+
+const gleamEditor = new EditorView({
+  state: EditorState.create({
+    doc: source,
+    extensions: [basicSetup, keymap.of([indentWithTab])],
+  }),
+  parent: document.getElementById("gleam-editor"),
+});
+
+const jsEditor = new EditorView({
+  state: EditorState.create({
+    doc: "",
+    extensions: [basicSetup, keymap.of([indentWithTab]), javascript()],
+  }),
+  parent: document.getElementById("js-editor"),
+});
+
+const jsBundleEditor = new EditorView({
+  state: EditorState.create({
+    doc: "",
+    extensions: [basicSetup, keymap.of([indentWithTab]), javascript()],
+  }),
+  parent: document.getElementById("js-bundle-editor"),
+});
+
 async function bundle(files) {
   const inputOptions = {
     input: {
-      main: "main.gleam.js",
+      main: "main.js",
     },
     plugins: [
       hypothetical({
@@ -15,34 +55,34 @@ async function bundle(files) {
     ],
   };
   const outputOptions = {
-    dir: "blah",
     format: "iife",
   };
-  // create a bundle
   const bundle = await rollup(inputOptions);
   const { output } = await bundle.generate(outputOptions);
-
-  console.log({ output: output });
-
   return output[0].code;
 }
 
 function compile() {
-  const gleam_input = document.getElementById("gleam-input").value;
+  const gleam_input = gleamEditor.state.sliceDoc(0);
 
-  console.log({ gleam_input: gleam_input });
+  localStorage.setItem("gleam-source", gleam_input);
 
-  let files = compile_to_js(gleam_input);
+  const files = compile_to_js(gleam_input);
 
-  console.log(files);
-
-  // files["./main.gleam.js"] = files["main.gleam.js"];
-  // files["./gleam.js"] = files["gleam.js"];
-
-  document.getElementById("js-output").textContent = files["main.gleam.js"];
+  jsEditor.setState(
+    EditorState.create({
+      doc: files["./main.js"],
+      extensions: [basicSetup, keymap.of([indentWithTab]), javascript()],
+    })
+  );
 
   bundle(files).then((bundled) => {
-    document.getElementById("js-bundle-output").textContent = bundled;
+    jsBundleEditor.setState(
+      EditorState.create({
+        doc: bundled,
+        extensions: [basicSetup, keymap.of([indentWithTab]), javascript()],
+      })
+    );
 
     document.getElementById("eval-output").textContent = eval(bundled).main();
 

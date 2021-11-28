@@ -6,20 +6,18 @@
 </header>
 
 <body>
-    <h1></h1>
+    <h1>Gleam Playground</h1>
 
-    <div>
-        <p>Gleam</p>
+    <h2>Gleam</h2>
+    <div id="gleam-editor"></div>
+    <button id="compile">Build & Run</button>
+    <h2>JavaScript</h2>
+    <div id="js-editor"></div>
+    <h2>Result</h2>
+    <textarea style="font-size:16pt;" id="eval-output"></textarea>
+    <h2>Bundled JavaScript</h2>
+    <div id="js-bundle-editor"></div>
 
-        <textarea style="font-size:16pt;" id="gleam-input">pub fn main() { 2 + 2 }</textarea>
-        <button id="compile">Compile</button>
-        <p>JavaScript</p>
-        <textarea style="font-size:16pt;" id="js-output"></textarea>
-        <p>Bundled JavaScript</p>
-        <textarea style="font-size:16pt;" id="js-bundle-output"></textarea>
-        <p>Result</p>
-        <textarea style="font-size:16pt;" id="eval-output"></textarea>
-    </div>
 </body>
 
 <style>
@@ -30,10 +28,16 @@
         height: 200px;
     }
 
+    h1,
+    h2,
     p {
         font-weight: bold;
         font-size: larger;
         font-family: 'Source Code Pro', monospace;
+    }
+
+    h1 {
+        font-size: x-large
     }
 </style>
 
