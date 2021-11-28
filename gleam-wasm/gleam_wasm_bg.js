@@ -132,15 +132,6 @@ export function __wbindgen_json_parse(arg0, arg1) {
     return addHeapObject(ret);
 };
 
-export function __wbindgen_string_new(arg0, arg1) {
-    var ret = getStringFromWasm0(arg0, arg1);
-    return addHeapObject(ret);
-};
-
-export function __wbindgen_object_drop_ref(arg0) {
-    takeObject(arg0);
-};
-
 export function __wbg_new_693216e109162396() {
     var ret = new Error();
     return addHeapObject(ret);
@@ -162,28 +153,8 @@ export function __wbg_error_09919627ac0992f5(arg0, arg1) {
     }
 };
 
-export function __wbg_debug_f6147a62af5fb117(arg0, arg1, arg2, arg3) {
-    console.debug(getObject(arg0), getObject(arg1), getObject(arg2), getObject(arg3));
-};
-
-export function __wbg_error_cc38ce2b4b661e1d(arg0) {
-    console.error(getObject(arg0));
-};
-
-export function __wbg_error_8b4a1487636c965d(arg0, arg1, arg2, arg3) {
-    console.error(getObject(arg0), getObject(arg1), getObject(arg2), getObject(arg3));
-};
-
-export function __wbg_info_74a03c22e1fa6688(arg0, arg1, arg2, arg3) {
-    console.info(getObject(arg0), getObject(arg1), getObject(arg2), getObject(arg3));
-};
-
-export function __wbg_log_ad41dbc3d891c2dc(arg0, arg1, arg2, arg3) {
-    console.log(getObject(arg0), getObject(arg1), getObject(arg2), getObject(arg3));
-};
-
-export function __wbg_warn_c1cc594c33944c11(arg0, arg1, arg2, arg3) {
-    console.warn(getObject(arg0), getObject(arg1), getObject(arg2), getObject(arg3));
+export function __wbindgen_object_drop_ref(arg0) {
+    takeObject(arg0);
 };
 
 export function __wbindgen_throw(arg0, arg1) {

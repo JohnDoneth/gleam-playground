@@ -83,9 +83,14 @@ function compile() {
         })
       );
 
-      document.getElementById("eval-output").textContent = eval(bundled).main();
+      const evalResult = eval(bundled);
 
-      console.log({ eval: eval(bundled) });
+      if (evalResult != undefined && evalResult.hasOwnProperty("main")) {
+        document.getElementById("eval-output").textContent = evalResult.main();
+      } else {
+        document.getElementById("eval-output").textContent =
+          "Main function not found.";
+      }
     });
   } else {
     document.getElementById("eval-output").textContent = files.Err;
