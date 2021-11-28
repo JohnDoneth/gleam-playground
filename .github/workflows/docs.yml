@@ -15,7 +15,8 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '16'
-      - run: npx webpack build --mode production --yes
+      - run: npm ci
+      - run: npx webpack build --mode production
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
