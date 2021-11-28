@@ -17,12 +17,13 @@
     "@codemirror/language": "^0.19.6",
     "@codemirror/view": "^0.19.21",
     "core-js": "^3.19.1",
+    "gleam-wasm": "file:./gleam-wasm",
+    "html-webpack-plugin": "^5.5.0",
     "install": "^0.13.0",
     "lezer": "^0.13.5",
     "npm": "^8.1.4",
     "rollup": "^2.60.1",
-    "rollup-plugin-hypothetical": "^2.1.1",
-    "gleam-wasm": "file:./gleam-wasm"
+    "rollup-plugin-hypothetical": "^2.1.1"
   },
   "devDependencies": {
     "path-browserify": "^1.0.1",

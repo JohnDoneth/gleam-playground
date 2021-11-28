@@ -7,8 +7,6 @@ import { EditorView, keymap } from "@codemirror/view";
 import { indentWithTab } from "@codemirror/commands";
 import { javascript } from "@codemirror/lang-javascript";
 
-// import { gleam } from "./gleam_lang";
-
 const initialSource = `import gleam/io
 
 pub fn main() {

@@ -2,22 +2,23 @@
 <html>
 
 <header>
+    <title>Gleam Playground</title>
     <script src="main.js" type="text/javascript"></script>
 </header>
 
 <body>
-    <h1>Gleam Playground</h1>
-
     <h2>Gleam</h2>
     <div id="gleam-editor"></div>
     <button id="compile">Build & Run</button>
-    <h2>JavaScript</h2>
-    <div id="js-editor"></div>
+
     <h2>Result</h2>
     <textarea style="font-size:16pt;" id="eval-output"></textarea>
+
+    <h2>JavaScript</h2>
+    <div id="js-editor"></div>
+
     <h2>Bundled JavaScript</h2>
     <div id="js-bundle-editor"></div>
-
 </body>
 
 <style>
@@ -25,7 +26,7 @@
 
     textarea {
         width: 100%;
-        height: 200px;
+        height: 3rem;
     }
 
     h1,
@@ -37,6 +38,7 @@
     }
 
     h1 {
+        font-weight: bolder;
         font-size: x-large
     }
 </style>
