@@ -1,3 +1,9 @@
-# Gleam Compiler in WASM Form
+# Compiler wasm
 
-Do not edit - This was auto-generated.
+```shell
+# Install the build tool
+cargo install wasm-pack
+
+# Build the library
+wasm-pack build
+```

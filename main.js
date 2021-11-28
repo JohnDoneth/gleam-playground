@@ -67,25 +67,29 @@ function compile() {
 
   const files = compile_to_js(gleam_input);
 
-  jsEditor.setState(
-    EditorState.create({
-      doc: files["./main.js"],
-      extensions: [basicSetup, keymap.of([indentWithTab]), javascript()],
-    })
-  );
-
-  bundle(files).then((bundled) => {
-    jsBundleEditor.setState(
+  if (files.Ok) {
+    jsEditor.setState(
       EditorState.create({
-        doc: bundled,
+        doc: files.Ok["./main.js"],
         extensions: [basicSetup, keymap.of([indentWithTab]), javascript()],
       })
     );
 
-    document.getElementById("eval-output").textContent = eval(bundled).main();
+    bundle(files.Ok).then((bundled) => {
+      jsBundleEditor.setState(
+        EditorState.create({
+          doc: bundled,
+          extensions: [basicSetup, keymap.of([indentWithTab]), javascript()],
+        })
+      );
 
-    console.log({ eval: eval(bundled) });
-  });
+      document.getElementById("eval-output").textContent = eval(bundled).main();
+
+      console.log({ eval: eval(bundled) });
+    });
+  } else {
+    document.getElementById("eval-output").textContent = files.Err;
+  }
 }
 
 document.getElementById("compile").addEventListener("click", (e) => {
