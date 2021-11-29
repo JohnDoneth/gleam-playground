@@ -1,11 +1,13 @@
-import { rollup } from "rollup";
+import { ModuleFormat, OutputOptions, rollup } from "rollup";
 import * as hypothetical from "rollup-plugin-hypothetical";
-import { compile_to_js } from "gleam-wasm";
+import * as gleamWasm from "gleam-wasm";
 
 import { EditorState, basicSetup } from "@codemirror/basic-setup";
 import { EditorView, keymap } from "@codemirror/view";
 import { indentWithTab } from "@codemirror/commands";
 import { javascript } from "@codemirror/lang-javascript";
+
+import { gleam } from "codemirror-gleam-lang";
 
 const initialSource = `import gleam/io
 
@@ -19,7 +21,7 @@ const source = localStorage.getItem("gleam-source") || initialSource;
 const gleamEditor = new EditorView({
   state: EditorState.create({
     doc: source,
-    extensions: [basicSetup, keymap.of([indentWithTab])],
+    extensions: [basicSetup, keymap.of([indentWithTab]), gleam()],
   }),
   parent: document.getElementById("gleam-editor"),
 });
@@ -52,20 +54,20 @@ async function bundle(files) {
       }),
     ],
   };
-  const outputOptions = {
-    format: "iife",
+  const outputOptions: OutputOptions = {
+    format: "iife" as ModuleFormat,
   };
   const bundle = await rollup(inputOptions);
   const { output } = await bundle.generate(outputOptions);
   return output[0].code;
 }
 
-function compile() {
+async function compile() {
   const gleam_input = gleamEditor.state.sliceDoc(0);
 
   localStorage.setItem("gleam-source", gleam_input);
 
-  const files = compile_to_js(gleam_input);
+  const files = (await gleamWasm).compile_to_js(gleam_input);
 
   if (files.Ok) {
     jsEditor.setState(
