@@ -11,23 +11,31 @@
         <!-- 
             <button id="compile">Share</button>
             <button id="compile">Theme</button> -->
+
+        <a href="https://github.com/JohnDoneth/gleam-playground">
+            <img src="./icons/GitHub-Mark-120px-plus.png" class="gh-link">
+        </a>
+    </div>
     </div>
     <div class="content">
         <div class="container">
             <div class="gleam-header">
                 <h2>Gleam</h2>
-                <button id="compile" >Build & Run</button>
+                <div>
+                    <button id="compile">Build & Run</button>
+                    <button id="share">Share</button>
+                </div>
             </div>
             <div id="gleam-editor" class="editor"></div>
         </div>
 
         <div class="container right">
-            <h2>Result</h2>
+            <h2>Main Result</h2>
             <textarea id="eval-output"></textarea>
 
             <h2>Compiled JavaScript</h2>
             <div id="js-editor" class="editor sized"></div>
-            
+
             <!-- <h2>Bundled JavaScript</h2>
             <div id="js-bundle-editor" class="editor sized"></div> -->
         </div>

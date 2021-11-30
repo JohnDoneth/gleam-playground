@@ -1,14 +1,7 @@
-// Create your own language definition here
-// You can safely look at other samples without losing modifications.
-// Modifications are not saved on browser refresh/close though -- copy often!
-
 export function registerGleam(monaco) {
   monaco.languages.register({ id: "gleam" });
 
   monaco.languages.setMonarchTokensProvider("gleam", {
-    // Set defaultToken to invalid to see what you do not tokenize yet
-    // defaultToken: 'invalid',
-
     keywords: [
       "import",
       "pub",
@@ -152,11 +145,6 @@ export function registerGleam(monaco) {
       };
 
       var suggestions = [
-        {
-          label: "",
-          kind: monaco.languages.CompletionItemKind.Keyword,
-          insertText: "simpleText",
-        },
         // Keywords
         {
           label: "import",
@@ -283,24 +271,9 @@ export function registerGleam(monaco) {
 
         // Constructors
         {
-          label: "Some",
-          kind: monaco.languages.CompletionItemKind.Function,
-          insertText: "Some(",
-        },
-        {
           label: "None",
           kind: monaco.languages.CompletionItemKind.Function,
           insertText: "None",
-        },
-        {
-          label: "Ok",
-          kind: monaco.languages.CompletionItemKind.Function,
-          insertText: "Ok(",
-        },
-        {
-          label: "Err",
-          kind: monaco.languages.CompletionItemKind.Function,
-          insertText: "Err(",
         },
         {
           label: "True",
@@ -322,12 +295,98 @@ export function registerGleam(monaco) {
             monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
           range: range,
         },
-        { label: "List(", kind: monaco.languages.CompletionItemKind.Snippet },
-        { label: "Map(", kind: monaco.languages.CompletionItemKind.Snippet },
-        { label: "Option(", kind: monaco.languages.CompletionItemKind.Snippet },
-        { label: "Result(", kind: monaco.languages.CompletionItemKind.Snippet },
-        { label: "Queue(", kind: monaco.languages.CompletionItemKind.Snippet },
-        { label: "Set(", kind: monaco.languages.CompletionItemKind.Snippet },
+        {
+          label: "List",
+          kind: monaco.languages.CompletionItemKind.Type,
+          insertText: "List(${1:type})",
+          insertTextRules:
+            monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          range: range,
+        },
+        {
+          label: "Some",
+          kind: monaco.languages.CompletionItemKind.Type,
+          insertText: "Some(${1:type})",
+          insertTextRules:
+            monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          range: range,
+        },
+        {
+          label: "Ok",
+          kind: monaco.languages.CompletionItemKind.Type,
+          insertText: "Ok(${1:type})",
+          insertTextRules:
+            monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          range: range,
+        },
+        {
+          label: "Err",
+          kind: monaco.languages.CompletionItemKind.Type,
+          insertText: "Err(${1:type})",
+          insertTextRules:
+            monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          range: range,
+        },
+        {
+          label: "Option",
+          kind: monaco.languages.CompletionItemKind.Type,
+          insertText: "Option(${1:type})",
+          insertTextRules:
+            monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          range: range,
+        },
+        {
+          label: "Result",
+          kind: monaco.languages.CompletionItemKind.Type,
+          insertText: "Result(${1:okType}, ${2:errorType})",
+          insertTextRules:
+            monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          range: range,
+        },
+        {
+          label: "if",
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: "if ${1:condition} {\n\t${2:body}\n}",
+          insertTextRules:
+            monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          range: range,
+        },
+        {
+          label: "fn0",
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: "fn ${1:name}() -> ${2:type} {\n\t${3:body}\n}",
+          insertTextRules:
+            monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          range: range,
+        },
+        {
+          label: "pfn0",
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: "pub fn ${1:name}() -> ${2:type} {\n\t${3:body}\n}",
+          insertTextRules:
+            monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          range: range,
+        },
+        {
+          label: "pfn1",
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: "pub fn ${1:name}(${2:param}: ${3:type}) -> ${4:type} {\n\t${5:body}\n}",
+          insertTextRules:
+            monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          range: range,
+        },
+        {
+          label: "fn1",
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          insertText: "fn ${1:name}(${2:param}: ${3:type}) -> ${4:type} {\n\t${5:body}\n}",
+          insertTextRules:
+            monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          range: range,
+        },
+        // { label: "Map(", kind: monaco.languages.CompletionItemKind.Snippet },
+        // { label: "Result(", kind: monaco.languages.CompletionItemKind.Snippet },
+        // { label: "Queue(", kind: monaco.languages.CompletionItemKind.Snippet },
+        // { label: "Set(", kind: monaco.languages.CompletionItemKind.Snippet },
       ];
       return { suggestions: suggestions };
     },
