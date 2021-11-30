@@ -9,6 +9,33 @@ import { javascript } from "@codemirror/lang-javascript";
 
 import { gleam } from "codemirror-gleam-lang";
 
+import { registerGleam } from "./gleam";
+
+import * as monaco from "monaco-editor";
+
+import "./index.css";
+
+registerGleam(monaco);
+
+// @ts-ignore
+self.MonacoEnvironment = {
+  getWorkerUrl: function (moduleId, label) {
+    if (label === "json") {
+      return "./json.worker.bundle.js";
+    }
+    if (label === "css" || label === "scss" || label === "less") {
+      return "./css.worker.bundle.js";
+    }
+    if (label === "html" || label === "handlebars" || label === "razor") {
+      return "./html.worker.bundle.js";
+    }
+    if (label === "typescript" || label === "javascript") {
+      return "./ts.worker.bundle.js";
+    }
+    return "./editor.worker.bundle.js";
+  },
+};
+
 const initialSource = `import gleam/io
 
 pub fn main() {
@@ -18,29 +45,37 @@ pub fn main() {
 
 const source = localStorage.getItem("gleam-source") || initialSource;
 
-const gleamEditor = new EditorView({
-  state: EditorState.create({
-    doc: source,
-    extensions: [basicSetup, keymap.of([indentWithTab]), gleam()],
-  }),
-  parent: document.getElementById("gleam-editor"),
+// const gleamEditor = new EditorView({
+//   state: EditorState.create({
+//     doc: source,
+//     extensions: [basicSetup, keymap.of([indentWithTab]), gleam()],
+//   }),
+//   parent: document.getElementById("gleam-editor"),
+// });
+
+const gleamEditor = monaco.editor.create(
+  document.getElementById("gleam-editor"),
+  {
+    value: source,
+    language: "gleam",
+    automaticLayout: true,
+  }
+);
+
+const jsEditor = monaco.editor.create(document.getElementById("js-editor"), {
+  value: "// Click Build & Run to see JavaScript output here.",
+  language: "javascript",
+  automaticLayout: true,
 });
 
-const jsEditor = new EditorView({
-  state: EditorState.create({
-    doc: "",
-    extensions: [basicSetup, keymap.of([indentWithTab]), javascript()],
-  }),
-  parent: document.getElementById("js-editor"),
-});
-
-const jsBundleEditor = new EditorView({
-  state: EditorState.create({
-    doc: "",
-    extensions: [basicSetup, keymap.of([indentWithTab]), javascript()],
-  }),
-  parent: document.getElementById("js-bundle-editor"),
-});
+// const jsBundleEditor = monaco.editor.create(
+//   document.getElementById("js-bundle-editor"),
+//   {
+//     value: "// Click Build & Run to see JavaScript output here.",
+//     language: "javascript",
+//     automaticLayout: true,
+//   }
+// );
 
 async function bundle(files) {
   const inputOptions = {
@@ -63,27 +98,17 @@ async function bundle(files) {
 }
 
 async function compile() {
-  const gleam_input = gleamEditor.state.sliceDoc(0);
+  const gleam_input = gleamEditor.getValue();
 
   localStorage.setItem("gleam-source", gleam_input);
 
   const files = (await gleamWasm).compile_to_js(gleam_input);
 
   if (files.Ok) {
-    jsEditor.setState(
-      EditorState.create({
-        doc: files.Ok["./main.js"],
-        extensions: [basicSetup, keymap.of([indentWithTab]), javascript()],
-      })
-    );
+    jsEditor.setValue(files.Ok["./main.js"]);
 
     bundle(files.Ok).then((bundled) => {
-      jsBundleEditor.setState(
-        EditorState.create({
-          doc: bundled,
-          extensions: [basicSetup, keymap.of([indentWithTab]), javascript()],
-        })
-      );
+      //jsBundleEditor.setValue(bundled);
 
       const evalResult = eval(bundled);
 
@@ -91,7 +116,7 @@ async function compile() {
         document.getElementById("eval-output").textContent = evalResult.main();
       } else {
         document.getElementById("eval-output").textContent =
-          "Main function not found.";
+          "Main function not found. It is defined and public?";
       }
     });
   } else {

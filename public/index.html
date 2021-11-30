@@ -6,40 +6,32 @@
 </header>
 
 <body>
-    <h2>Gleam</h2>
-    <div id="gleam-editor"></div>
-    <button id="compile">Build & Run</button>
+    <div class="header">
+        <h2>Gleam Playground</h2>
+        <!-- 
+            <button id="compile">Share</button>
+            <button id="compile">Theme</button> -->
+    </div>
+    <div class="content">
+        <div class="container">
+            <div class="gleam-header">
+                <h2>Gleam</h2>
+                <button id="compile" >Build & Run</button>
+            </div>
+            <div id="gleam-editor" class="editor"></div>
+        </div>
 
-    <h2>Result</h2>
-    <textarea id="eval-output"></textarea>
+        <div class="container right">
+            <h2>Result</h2>
+            <textarea id="eval-output"></textarea>
 
-    <h2>JavaScript</h2>
-    <div id="js-editor"></div>
-
-    <h2>Bundled JavaScript</h2>
-    <div id="js-bundle-editor"></div>
+            <h2>Compiled JavaScript</h2>
+            <div id="js-editor" class="editor sized"></div>
+            
+            <!-- <h2>Bundled JavaScript</h2>
+            <div id="js-bundle-editor" class="editor sized"></div> -->
+        </div>
+    </div>
 </body>
-
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap');
-
-    textarea {
-        width: 100%;
-        height: 200px;
-    }
-
-    h1,
-    h2,
-    p {
-        font-weight: bold;
-        font-size: larger;
-        font-family: 'Source Code Pro', monospace;
-    }
-
-    h1 {
-        font-weight: bolder;
-        font-size: x-large
-    }
-</style>
 
 </html>

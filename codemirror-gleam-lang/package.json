@@ -22,6 +22,7 @@
   "files": [
     "gleam_parser.js",
     "gleam_parser.d.ts",
-    "index.ts"
+    "index.ts",
+    "snippets.ts"
   ]
 }
