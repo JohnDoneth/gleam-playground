@@ -121,6 +121,17 @@ export function compile_to_js(gleam_source) {
     return takeObject(ret);
 }
 
+/**
+* @param {string} erlang_source
+* @returns {any}
+*/
+export function compile_to_erlang(erlang_source) {
+    var ptr0 = passStringToWasm0(erlang_source, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len0 = WASM_VECTOR_LEN;
+    var ret = wasm.compile_to_erlang(ptr0, len0);
+    return takeObject(ret);
+}
+
 let cachegetInt32Memory0 = null;
 function getInt32Memory0() {
     if (cachegetInt32Memory0 === null || cachegetInt32Memory0.buffer !== wasm.memory.buffer) {

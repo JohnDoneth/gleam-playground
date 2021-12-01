@@ -10,3 +10,8 @@ export function init(): void;
 * @returns {any}
 */
 export function compile_to_js(gleam_source: string): any;
+/**
+* @param {string} erlang_source
+* @returns {any}
+*/
+export function compile_to_erlang(erlang_source: string): any;

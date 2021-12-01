@@ -72,7 +72,7 @@ const gleamEditor = monaco.editor.create(
 
 const jsEditor = monaco.editor.create(document.getElementById("js-editor"), {
   value: "// Click Build & Run to see JavaScript output here.",
-  language: "javascript",
+  language: "erlang",
   automaticLayout: true,
 });
 
@@ -101,12 +101,12 @@ async function compile() {
 
   localStorage.setItem("gleam-source", gleam_input);
 
-  const files = (await gleamWasm).compile_to_js(gleam_input);
+  const files = (await gleamWasm).compile_to_erlang(gleam_input);
 
   if (files.Ok) {
     console.log(files)
 
-    jsEditor.setValue(files.Ok["./gleam-packages/gleam-wasm/main.js"]);
+    jsEditor.setValue(files.Ok["build/dev/erlang/gleam-wasm/main.erl"]);
 
     bundle(files.Ok).then((bundled) => {
       const evalResult = eval(bundled);
