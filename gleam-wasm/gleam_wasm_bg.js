@@ -47,9 +47,11 @@ function takeObject(idx) {
     return ret;
 }
 /**
+* Should be called once to setup any state that persists across compilation
+* cycles.
 */
-export function init_panic_hook() {
-    wasm.init_panic_hook();
+export function init() {
+    wasm.init();
 }
 
 let WASM_VECTOR_LEN = 0;

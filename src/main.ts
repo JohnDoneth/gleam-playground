@@ -79,7 +79,7 @@ const jsEditor = monaco.editor.create(document.getElementById("js-editor"), {
 async function bundle(files) {
   const inputOptions = {
     input: {
-      main: "main.js",
+      main: "./gleam-packages/gleam-wasm/main.js",
     },
     plugins: [
       hypothetical({
@@ -104,7 +104,9 @@ async function compile() {
   const files = (await gleamWasm).compile_to_js(gleam_input);
 
   if (files.Ok) {
-    jsEditor.setValue(files.Ok["./main.js"]);
+    console.log(files)
+
+    jsEditor.setValue(files.Ok["./gleam-packages/gleam-wasm/main.js"]);
 
     bundle(files.Ok).then((bundled) => {
       const evalResult = eval(bundled);
