@@ -2,3 +2,4 @@ node_modules
 dist
 .lsp
 .psc-ide-port
+.ionide

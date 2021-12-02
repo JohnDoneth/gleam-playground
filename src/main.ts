@@ -14,7 +14,7 @@ const notyf = new Notyf({
     {
       type: 'success',
       background: '#ffaff3',
-      duration: 30000,
+      duration: 3000,
       icon: {
         className: 'notyf__icon--success',
         color: "black"
@@ -52,6 +52,12 @@ pub fn main() {
   42
 }`;
 
+enum TargetLanguage {
+  JavaScript,
+  Erlang
+}
+
+let target = TargetLanguage.JavaScript;
 let source = localStorage.getItem("gleam-source") || initialSource;
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -76,10 +82,16 @@ const jsEditor = monaco.editor.create(document.getElementById("js-editor"), {
   automaticLayout: true,
 });
 
+const erlangEditor = monaco.editor.create(document.getElementById("erlang-editor"), {
+  value: "// Click Build to see Erlang output here.",
+  language: "erlang",
+  automaticLayout: true,
+});
+
 async function bundle(files) {
   const inputOptions = {
     input: {
-      main: "main.js",
+      main: "gleam-packages/gleam-wasm/main.js",
     },
     plugins: [
       hypothetical({
@@ -101,21 +113,38 @@ async function compile() {
 
   localStorage.setItem("gleam-source", gleam_input);
 
-  const files = (await gleamWasm).compile_to_js(gleam_input);
-
+  let files;
+  if (target == TargetLanguage.JavaScript) {
+    files = (await gleamWasm).compile_to_js(gleam_input);
+  } else {
+    files = (await gleamWasm).compile_to_erlang(gleam_input);
+  }
+  
   if (files.Ok) {
-    jsEditor.setValue(files.Ok["./main.js"]);
+    if (target == TargetLanguage.JavaScript) {
+      jsEditor.setValue(files.Ok["gleam-packages/gleam-wasm/main.js"]);
 
-    bundle(files.Ok).then((bundled) => {
-      const evalResult = eval(bundled);
+      // TODO: remove these hardcoded paths.
+      files.Ok["./gleam-packages/gleam-wasm/main.js"] = files.Ok["gleam-packages/gleam-wasm/main.js"];
+      files.Ok["./gleam-packages/gleam-wasm/gleam.js"] = files.Ok["gleam-packages/gleam-wasm/gleam.js"];
+      files.Ok["gleam-packages/gleam_stdlib/gleam_stdlib.js"] = files.Ok["build/packages/gleam_stdlib/src/gleam_stdlib.js"];
 
-      if (evalResult != undefined && evalResult.hasOwnProperty("main")) {
-        document.getElementById("eval-output").textContent = evalResult.main();
-      } else {
-        document.getElementById("eval-output").textContent =
-          "Main function not found. It is defined and public?";
-      }
-    });
+      bundle(files.Ok).then((bundled) => {
+        const evalResult = eval(bundled);
+
+        if (evalResult != undefined && evalResult.hasOwnProperty("main")) {
+          document.getElementById("eval-output").textContent = evalResult.main();
+        } else {
+          document.getElementById("eval-output").textContent =
+            "Main function not found. It is defined and public?";
+        }
+      });
+    } else {
+      erlangEditor.setValue(files.Ok["build/dev/erlang/gleam-wasm/main.erl"]);
+
+      document.getElementById("eval-output").textContent = "Compiled successfully!\n\nNote that the Erlang target is not executable in the browser.";
+    }
+    
   } else {
     document.getElementById("eval-output").textContent = files.Err;
   }
@@ -137,3 +166,37 @@ document.getElementById("share").addEventListener("click", async (e) => {
 });
 
 
+document.getElementById("target-javascript").addEventListener("click", async (e) => {
+  target = TargetLanguage.JavaScript;
+  document.getElementById("target-erlang").classList.toggle("active");
+  document.getElementById("target-javascript").classList.toggle("active");
+
+  document.getElementById("target-erlang").removeAttribute("disabled");
+  document.getElementById("target-javascript").setAttribute("disabled", "");
+
+  targetChanged();
+});
+
+document.getElementById("target-erlang").addEventListener("click", async (e) => {
+  target = TargetLanguage.Erlang;
+  document.getElementById("target-erlang").classList.toggle("active");
+  document.getElementById("target-javascript").classList.toggle("active");
+
+  document.getElementById("target-erlang").setAttribute("disabled", "");
+  document.getElementById("target-javascript").removeAttribute("disabled");
+
+  targetChanged();
+});
+
+function targetChanged() {
+  document.getElementById("javascript-output").classList.toggle("hidden");
+  document.getElementById("erlang-output").classList.toggle("hidden");
+
+  if (target == TargetLanguage.JavaScript) {
+    document.getElementById("compile").textContent = "Build & Run";
+  } else {
+    document.getElementById("compile").textContent = "Build";
+  }
+
+  document.getElementById("eval-output").textContent = "";
+}

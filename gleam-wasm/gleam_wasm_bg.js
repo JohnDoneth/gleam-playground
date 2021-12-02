@@ -47,9 +47,11 @@ function takeObject(idx) {
     return ret;
 }
 /**
+* Should be called once to setup any state that persists across compilation
+* cycles.
 */
-export function init_panic_hook() {
-    wasm.init_panic_hook();
+export function init() {
+    wasm.init();
 }
 
 let WASM_VECTOR_LEN = 0;
@@ -116,6 +118,17 @@ export function compile_to_js(gleam_source) {
     var ptr0 = passStringToWasm0(gleam_source, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     var len0 = WASM_VECTOR_LEN;
     var ret = wasm.compile_to_js(ptr0, len0);
+    return takeObject(ret);
+}
+
+/**
+* @param {string} erlang_source
+* @returns {any}
+*/
+export function compile_to_erlang(erlang_source) {
+    var ptr0 = passStringToWasm0(erlang_source, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len0 = WASM_VECTOR_LEN;
+    var ret = wasm.compile_to_erlang(ptr0, len0);
     return takeObject(ret);
 }
 

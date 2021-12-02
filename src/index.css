@@ -106,8 +106,6 @@ button {
   border-radius: 2px;
   background-color: white;
   cursor: pointer;
-  margin-left: 4px;
-  margin-right: 4px;
   margin-top: 16px;
   margin-bottom: 16px;
   font-family: "Outfit", sans-serif;
@@ -142,4 +140,34 @@ button:active {
 .notyf__wrapper > * {
   color: black;
   font-family: "Outfit", sans-serif;
+}
+
+.btn-group {
+  display: flex;
+}
+
+.btn-group button.active {
+  background-color: rgb(230, 230, 230);
+  cursor: default;
+}
+
+.btn-group button:not(:last-child) {
+  border-right: none; /* Prevent double borders */
+  border-radius: 2px 0 0 2px;
+}
+
+.btn-group button:is(:last-child) {
+  border-radius: 0 2px 2px 0;
+}
+
+.button-cluster {
+  display: flex;
+}
+
+.button-cluster > * {
+  margin-left: 10px;
+}
+
+.output-panel.hidden {
+  display: none;
 }
