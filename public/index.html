@@ -8,10 +8,6 @@
 <body>
     <div class="header">
         <h2>Gleam Playground</h2>
-        <!-- 
-            <button id="compile">Share</button>
-            <button id="compile">Theme</button> -->
-
         <a href="https://github.com/JohnDoneth/gleam-playground">
             <img src="github.png" class="gh-link">
         </a>
@@ -21,8 +17,13 @@
         <div class="container">
             <div class="gleam-header">
                 <h2>Gleam</h2>
-                <div>
+
+                <div class="button-cluster">
                     <button id="compile">Build & Run</button>
+                    <div id="target-language-toggle" class="btn-group">
+                        <button id="target-javascript" class="toggle-button active">JavaScript</button>
+                        <button id="target-erlang" class="toggle-button">Erlang</button>
+                    </div>
                     <button id="share">Share</button>
                 </div>
             </div>
@@ -30,14 +31,19 @@
         </div>
 
         <div class="container right">
-            <h2>Main Result</h2>
-            <textarea id="eval-output"></textarea>
 
-            <h2>Compiled JavaScript</h2>
-            <div id="js-editor" class="editor sized"></div>
+            <h2>Result</h2>
+            <textarea id="eval-output">Test</textarea>
 
-            <!-- <h2>Bundled JavaScript</h2>
-            <div id="js-bundle-editor" class="editor sized"></div> -->
+            <div id="javascript-output" class="output-panel">
+                <h2>Compiled JavaScript</h2>
+                <div id="js-editor" class="editor sized"></div>
+            </div>
+
+            <div id="erlang-output" class="output-panel hidden">
+                <h2>Compiled Erlang</h2>
+                <div id="erlang-editor" class="editor sized"></div>
+            </div>
         </div>
     </div>
 </body>
