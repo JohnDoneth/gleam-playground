@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+cd "$(dirname "$0")" && cd .. \
+	&& echo "Notice: global npm packages \"webpack-cli\" and \"commander\" may be required!" \
+    && npm install --no-save "$@" \
+;

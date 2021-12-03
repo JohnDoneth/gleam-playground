@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+cd "$(dirname "$0")" && cd .. \
+	&& echo "Specify an alternate port as such --port 4001" \
+	&& echo "Notice: Global npm packages \"webpack-cli\" and \"commander\" may be required!" \
+    && webpack serve --open "$@" \
+;
