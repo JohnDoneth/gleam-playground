@@ -1,27 +1,27 @@
 import { ModuleFormat, OutputOptions, rollup } from "rollup";
 import * as hypothetical from "rollup-plugin-hypothetical";
 import * as gleamWasm from "gleam-wasm";
-import { Notyf } from 'notyf';
+import { Notyf } from "notyf";
 import { registerGleam } from "./gleam";
 import * as monaco from "monaco-editor";
 
 import "./index.css";
-import 'notyf/notyf.min.css';
+import "notyf/notyf.min.css";
 
 // Create an instance of Notyf
 const notyf = new Notyf({
   types: [
     {
-      type: 'success',
-      background: '#ffaff3',
+      type: "success",
+      background: "#ffaff3",
       duration: 3000,
       icon: {
-        className: 'notyf__icon--success',
-        color: "black"
-      }
-    }
+        className: "notyf__icon--success",
+        color: "black",
+      },
+    },
   ],
-  ripple: false
+  ripple: false,
 });
 
 // @ts-ignore
@@ -54,36 +54,33 @@ pub fn main() {
 
 enum TargetLanguage {
   JavaScript,
-  Erlang
+  Erlang,
 }
 
 let target = TargetLanguage.JavaScript;
 let source = localStorage.getItem("gleam-source") || initialSource;
 
 const urlParams = new URLSearchParams(window.location.search);
-const sourceParam = urlParams.get('source');
+const sourceParam = urlParams.get("source");
 
 if (sourceParam) {
   source = window.atob(sourceParam);
 }
 
-const gleamEditor = monaco.editor.create(
-  document.getElementById("gleam-editor"),
-  {
-    value: source,
-    language: "gleam",
-    automaticLayout: true,
-  }
-);
+const gleamEditor = monaco.editor.create(document.getElementById("gleam-editor"), {
+  value: source,
+  language: "gleam",
+  automaticLayout: true,
+});
 
-const jsEditor = monaco.editor.create(document.getElementById("js-editor"), {
-  value: "// Click Build & Run to see JavaScript output here.",
+const jsEditor = monaco.editor.create(document.getElementById("javascript-editor"), {
+  value: "// Click [Build & Run] to see JavaScript output here…",
   language: "javascript",
   automaticLayout: true,
 });
 
 const erlangEditor = monaco.editor.create(document.getElementById("erlang-editor"), {
-  value: "// Click Build to see Erlang output here.",
+  value: "// Click [Build] to see Erlang output here…",
   language: "erlang",
   automaticLayout: true,
 });
@@ -119,7 +116,7 @@ async function compile() {
   } else {
     files = (await gleamWasm).compile_to_erlang(gleam_input);
   }
-  
+
   if (files.Ok) {
     if (target == TargetLanguage.JavaScript) {
       jsEditor.setValue(files.Ok["gleam-packages/gleam-wasm/main.js"]);
@@ -135,8 +132,7 @@ async function compile() {
         if (evalResult != undefined && evalResult.hasOwnProperty("main")) {
           document.getElementById("eval-output").textContent = evalResult.main();
         } else {
-          document.getElementById("eval-output").textContent =
-            "Main function not found. It is defined and public?";
+          document.getElementById("eval-output").textContent = "Main function not found. It is defined and public?";
         }
       });
     } else {
@@ -144,7 +140,6 @@ async function compile() {
 
       document.getElementById("eval-output").textContent = "Compiled successfully!\n\nNote that the Erlang target is not executable in the browser.";
     }
-    
   } else {
     document.getElementById("eval-output").textContent = files.Err;
   }
@@ -157,14 +152,13 @@ document.getElementById("compile").addEventListener("click", (e) => {
 document.getElementById("share").addEventListener("click", async (e) => {
   let base64source = window.btoa(gleamEditor.getValue());
 
-  var url = new URL(window.location.href.split('?')[0]);
+  var url = new URL(window.location.href.split("?")[0]);
   url.searchParams.append("source", base64source);
 
   await navigator.clipboard.writeText(url.toString());
-  
-  notyf.success("Link Copied to Clipboard!");
-});
 
+  notyf.success("Link copied to clipboard!");
+});
 
 document.getElementById("target-javascript").addEventListener("click", async (e) => {
   target = TargetLanguage.JavaScript;
@@ -193,9 +187,9 @@ function targetChanged() {
   document.getElementById("erlang-output").classList.toggle("hidden");
 
   if (target == TargetLanguage.JavaScript) {
-    document.getElementById("compile").textContent = "Build & Run";
+    document.querySelector("#compile nobr").textContent = "Build & Run";
   } else {
-    document.getElementById("compile").textContent = "Build";
+    document.querySelector("#compile nobr").textContent = "Build";
   }
 
   document.getElementById("eval-output").textContent = "";
