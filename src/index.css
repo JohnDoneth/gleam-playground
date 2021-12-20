@@ -1,6 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@600&display=swap");
 
-* {
+body {
   user-select: none;
 }
 
@@ -255,4 +255,102 @@ body,
 .notyf__wrapper > * {
   color: black;
   font-family: "Outfit", sans-serif;
+}
+
+.log-container {
+  font-family: monospace, monospace;
+  font-size: 90%;
+  user-select: text;
+  margin: 0 10px;
+  border: 1px solid #aaa;
+  overflow: auto;
+  white-space: pre-wrap;
+  max-height: calc(60vh - 100px);
+}
+
+.log-container [data-log-level],
+.log-container .group-header {
+  padding: 1px 8px;
+  border-bottom: 1px solid #00000010;
+}
+
+.log-container .group-header {
+  color: #333;
+  font-weight: bold;
+}
+
+.log-container [data-log-level] div {
+  display: inline-block;
+  vertical-align: text-top;
+}
+
+.log-container [data-log-level] .object {
+  display: inline-flex;
+  flex-direction: column;
+  border-left: 2px solid #aaa;
+  padding: 0 10px;
+}
+
+.log-container [data-log-level="clear"] {
+  color: #aaa;
+}
+.log-container [data-log-level="trace"] {
+  color: #555;
+}
+.log-container [data-log-level="warn"] {
+  background-color: #fff7cd;
+}
+.log-container [data-log-level="error"] {
+  background-color: #ffd0d0;
+}
+
+.log-container i {
+  font-style: normal;
+}
+
+.log-container .num,
+.log-container .bool,
+.log-container .fn,
+.log-container .tag {
+  color: blue;
+}
+.log-container .str {
+  color: #790000;
+}
+.log-container .sym {
+  color: #035d00;
+}
+.log-container .undef {
+  color: #777;
+}
+.log-container .clear {
+  color: #888;
+  font-style: italic;
+}
+.log-container .repr {
+  color: #a07500;
+  font-style: italic;
+}
+
+.log-container .console-group {
+  padding-left: 20px;
+}
+.log-container .console-group.closed {
+  display: none;
+}
+
+.log-container button {
+  border: none;
+  margin: -2px 0;
+  padding: 0;
+  display: inline-block;
+  height: 22px;
+  min-width: 22px;
+  text-align: center;
+  background-color: transparent;
+  letter-spacing: 0.02em;
+}
+
+.log-container button.arrow-button {
+  font-size: 110%;
 }
