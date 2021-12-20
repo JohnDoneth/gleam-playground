@@ -4,7 +4,7 @@ import * as gleamWasm from "gleam-wasm";
 import { Notyf } from "notyf";
 import { registerGleam } from "./gleam";
 import * as monaco from "monaco-editor";
-
+import { decompressFromBase64 as LZString_decompressFromBase64, compressToBase64 as LZString_compressToBase64 } from "lz-string";
 import "./index.css";
 import "notyf/notyf.min.css";
 
@@ -61,9 +61,12 @@ let target = TargetLanguage.JavaScript;
 let source = localStorage.getItem("gleam-source") || initialSource;
 
 const urlParams = new URLSearchParams(window.location.search);
+const zippedSourceParam = urlParams.get("s");
 const sourceParam = urlParams.get("source");
 
-if (sourceParam) {
+if (zippedSourceParam) {
+  source = LZString_decompressFromBase64(zippedSourceParam);
+} else if (urlParams.get("source")) {
   source = window.atob(sourceParam);
 }
 
@@ -71,18 +74,21 @@ const gleamEditor = monaco.editor.create(document.getElementById("gleam-editor")
   value: source,
   language: "gleam",
   automaticLayout: true,
+  readOnly: false,
 });
 
 const jsEditor = monaco.editor.create(document.getElementById("javascript-editor"), {
   value: "// Click [Build & Run] to see JavaScript output here…",
   language: "javascript",
   automaticLayout: true,
+  readOnly: true,
 });
 
 const erlangEditor = monaco.editor.create(document.getElementById("erlang-editor"), {
   value: "// Click [Build] to see Erlang output here…",
   language: "erlang",
   automaticLayout: true,
+  readOnly: true,
 });
 
 async function bundle(files) {
@@ -150,10 +156,10 @@ document.getElementById("compile").addEventListener("click", (e) => {
 });
 
 document.getElementById("share").addEventListener("click", async (e) => {
-  let base64source = window.btoa(gleamEditor.getValue());
+  let base64source = LZString_compressToBase64(gleamEditor.getValue());
 
   var url = new URL(window.location.href.split("?")[0]);
-  url.searchParams.append("source", base64source);
+  url.searchParams.append("s", base64source);
 
   await navigator.clipboard.writeText(url.toString());
 
