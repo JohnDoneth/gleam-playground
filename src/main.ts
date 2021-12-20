@@ -66,7 +66,7 @@ const sourceParam = urlParams.get("source");
 
 if (zippedSourceParam) {
   source = LZString_decompressFromBase64(zippedSourceParam);
-} else if (urlParams.get("source")) {
+} else if (sourceParam) {
   source = window.atob(sourceParam);
 }
 
