@@ -155,7 +155,7 @@ async function compile() {
     } else {
       erlangEditor.setValue(files.Ok["build/dev/erlang/gleam-wasm/main.erl"]);
 
-      document.getElementById("eval-output").textContent = "Compiled successfully!\n\nNote that the Erlang target is not executable in the browser.";
+      logger.log("Compiled successfully!\n\nNote that the Erlang target is not executable in the browser.");
     }
   } else {
     logger.clear();
