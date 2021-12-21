@@ -93,7 +93,8 @@ export class HtmlLogger {
         });
 
         const header = document.createElement('div');
-        header.append(arrow, `<b>${label}</b>`);
+        header.className = 'group-header';
+        header.append(arrow, label);
 
         this.activeGroup.append(header, newGroup);
         this.activeGroup = newGroup;
@@ -425,7 +426,7 @@ function enumerateSafe(obj: object, forEach: (k: string, v: any) => void, limit 
         const descriptors = Object.getOwnPropertyDescriptors(proto);
         for (const key in descriptors) {
             const desc = descriptors[key];
-            if (desc.get) {
+            if (desc.get && desc.enumerable) {
                 let value: any;
                 try {
                     value = obj[key];

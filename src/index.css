@@ -366,3 +366,7 @@ body,
 .log-container .object > .expand {
   margin-left: -20px;
 }
+
+.group-header > button.arrow-button {
+  margin-left: 0;
+}
