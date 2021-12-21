@@ -4,7 +4,10 @@ import * as gleamWasm from "gleam-wasm";
 import { Notyf } from "notyf";
 import { registerGleam } from "./gleam";
 import * as monaco from "monaco-editor";
-import { decompressFromBase64 as LZString_decompressFromBase64, compressToBase64 as LZString_compressToBase64 } from "lz-string";
+import {
+  decompressFromBase64 as LZString_decompressFromBase64,
+  compressToBase64 as LZString_compressToBase64,
+} from "lz-string";
 import "./index.css";
 import "notyf/notyf.min.css";
 
@@ -70,26 +73,35 @@ if (zippedSourceParam) {
   source = window.atob(sourceParam);
 }
 
-const gleamEditor = monaco.editor.create(document.getElementById("gleam-editor"), {
-  value: source,
-  language: "gleam",
-  automaticLayout: true,
-  readOnly: false,
-});
+const gleamEditor = monaco.editor.create(
+  document.getElementById("gleam-editor"),
+  {
+    value: source,
+    language: "gleam",
+    automaticLayout: true,
+    readOnly: false,
+  }
+);
 
-const jsEditor = monaco.editor.create(document.getElementById("javascript-editor"), {
-  value: "// Click [Build & Run] to see JavaScript output here…",
-  language: "javascript",
-  automaticLayout: true,
-  readOnly: true,
-});
+const jsEditor = monaco.editor.create(
+  document.getElementById("javascript-editor"),
+  {
+    value: "// Click [Build & Run] to see JavaScript output here…",
+    language: "javascript",
+    automaticLayout: true,
+    readOnly: true,
+  }
+);
 
-const erlangEditor = monaco.editor.create(document.getElementById("erlang-editor"), {
-  value: "// Click [Build] to see Erlang output here…",
-  language: "erlang",
-  automaticLayout: true,
-  readOnly: true,
-});
+const erlangEditor = monaco.editor.create(
+  document.getElementById("erlang-editor"),
+  {
+    value: "// Click [Build] to see Erlang output here…",
+    language: "erlang",
+    automaticLayout: true,
+    readOnly: true,
+  }
+);
 
 async function bundle(files) {
   const inputOptions = {
@@ -145,7 +157,8 @@ async function compile() {
           document.getElementById("eval-output").textContent =
             evalResult.main();
         } else {
-          document.getElementById("eval-output").textContent = "Main function not found. It is defined and public?";
+          document.getElementById("eval-output").textContent =
+            "Main function not found. It is defined and public?";
         }
       });
     } else {

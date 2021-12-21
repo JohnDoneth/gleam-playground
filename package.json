@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint:styles": "npx stylelint src/**.css",
-    "lint:code": "npx eslint src"
+    "lint:code": "npx eslint src",
+    "format": "npx prettier src/** .prettier.js .eslintrc.js .stylelintrc.js webpack.config.js --write"
   },
   "keywords": [],
   "author": "",

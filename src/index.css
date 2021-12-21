@@ -96,10 +96,6 @@ body,
   grid-template-rows: min-content auto;
 }
 
-.main {
-  grid-area: main;
-}
-
 .header {
   grid-area: header;
   padding: 10px;
@@ -118,24 +114,20 @@ body,
   display: block;
 }
 
+/* stylelint-disable-line no-duplicate-selectors */
 .main {
+  grid-area: main;
   display: grid;
-  grid-template-areas:
-    "source"
-    "result";
-  grid-template-rows: 1fr;
-  grid-template-columns: 1fr;
+  grid-template: "source" 1fr "result" 1fr;
 }
 
 @media (min-width: 768px) and (min-resolution: 1dppx) {
   .main {
-    grid-template-areas: "source result";
-    grid-template-rows: 1fr;
-    grid-template-columns: 1fr 1fr;
+    grid-template: "source result" 1fr / 1fr 1fr;
   }
 }
 
-/* stylelint-disable no-duplicate-selectors */
+/* stylelint-disable-line no-duplicate-selectors */
 .content {
   flex-direction: column;
   width: 100%;
@@ -156,13 +148,6 @@ body,
 
 .source {
   grid-area: source;
-}
-
-.result {
-  grid-area: result;
-}
-
-.source {
   display: grid;
   grid-template-rows: min-content auto;
 }
@@ -170,36 +155,19 @@ body,
 .result {
   grid-area: result;
   display: grid;
-  grid-template-areas:
-    "main-output"
-    "compiled-output";
-  grid-template-rows: 1fr 1fr;
+  grid-template: "main-output" 1fr "compiled-output" 1fr;
 }
 
 .main-output {
   grid-area: main-output;
-}
-
-.compiled-output {
-  grid-area: compiled-output;
-}
-
-.main-output {
   display: grid;
   grid-template-rows: min-content auto;
 }
 
 .compiled-output {
+  grid-area: compiled-output;
   display: grid;
   grid-template-rows: minmax(1fr, auto) minmax(1fr, auto);
-}
-
-button:hover {
-  background-color: rgb(240 240 240);
-}
-
-button:active {
-  background-color: rgb(200 200 200);
 }
 
 .output-panel {
@@ -240,19 +208,10 @@ button:active {
   padding-left: 20px;
   flex: 1;
   display: grid;
-  grid-template-areas:
-    "build switch"
-    "share";
   grid-gap: 5px;
   gap: 5px;
   padding-top: 5px;
   padding-bottom: 5px;
-}
-
-@media (min-width: 768px) and (min-resolution: 1dppx) {
-  .button-cluster {
-    grid-template-areas: "build switch share";
-  }
 }
 
 .btn-group button.active {
@@ -292,9 +251,4 @@ button:active {
 
 .output-panel.hidden {
   display: none;
-}
-
-.notyf__wrapper > * {
-  color: black;
-  font-family: "Outfit", sans-serif;
 }

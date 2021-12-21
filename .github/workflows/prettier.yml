@@ -15,4 +15,4 @@ jobs:
         with:
           node-version: '16'
       - run: npm ci
-      - run: npx prettier ./src/** --check
+      - run: npx prettier ./src/** .prettier.js .eslintrc.js .stylelintrc.js webpack.config.js --check
