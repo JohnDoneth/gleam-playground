@@ -4,7 +4,10 @@ import * as gleamWasm from "gleam-wasm";
 import { Notyf } from "notyf";
 import { registerGleam } from "./gleam";
 import * as monaco from "monaco-editor";
-import { decompressFromBase64 as LZString_decompressFromBase64, compressToBase64 as LZString_compressToBase64 } from "lz-string";
+import {
+  decompressFromBase64 as LZString_decompressFromBase64,
+  compressToBase64 as LZString_compressToBase64,
+} from "lz-string";
 import "./index.css";
 import "notyf/notyf.min.css";
 
@@ -70,26 +73,35 @@ if (zippedSourceParam) {
   source = window.atob(sourceParam);
 }
 
-const gleamEditor = monaco.editor.create(document.getElementById("gleam-editor"), {
-  value: source,
-  language: "gleam",
-  automaticLayout: true,
-  readOnly: false,
-});
+const gleamEditor = monaco.editor.create(
+  document.getElementById("gleam-editor"),
+  {
+    value: source,
+    language: "gleam",
+    automaticLayout: true,
+    readOnly: false,
+  }
+);
 
-const jsEditor = monaco.editor.create(document.getElementById("javascript-editor"), {
-  value: "// Click [Build & Run] to see JavaScript output here…",
-  language: "javascript",
-  automaticLayout: true,
-  readOnly: true,
-});
+const jsEditor = monaco.editor.create(
+  document.getElementById("javascript-editor"),
+  {
+    value: "// Click [Build & Run] to see JavaScript output here…",
+    language: "javascript",
+    automaticLayout: true,
+    readOnly: true,
+  }
+);
 
-const erlangEditor = monaco.editor.create(document.getElementById("erlang-editor"), {
-  value: "// Click [Build] to see Erlang output here…",
-  language: "erlang",
-  automaticLayout: true,
-  readOnly: true,
-});
+const erlangEditor = monaco.editor.create(
+  document.getElementById("erlang-editor"),
+  {
+    value: "// Click [Build] to see Erlang output here…",
+    language: "erlang",
+    automaticLayout: true,
+    readOnly: true,
+  }
+);
 
 async function bundle(files) {
   const inputOptions = {
@@ -128,37 +140,46 @@ async function compile() {
       jsEditor.setValue(files.Ok["gleam-packages/gleam-wasm/main.js"]);
 
       // TODO: remove these hardcoded paths.
-      files.Ok["./gleam-packages/gleam-wasm/main.js"] = files.Ok["gleam-packages/gleam-wasm/main.js"];
-      files.Ok["./gleam-packages/gleam-wasm/gleam.js"] = files.Ok["gleam-packages/gleam-wasm/gleam.js"];
-      files.Ok["gleam-packages/gleam_stdlib/gleam_stdlib.js"] = files.Ok["build/packages/gleam_stdlib/src/gleam_stdlib.js"];
+      files.Ok["./gleam-packages/gleam-wasm/main.js"] =
+        files.Ok["gleam-packages/gleam-wasm/main.js"];
+      files.Ok["./gleam-packages/gleam-wasm/gleam.js"] =
+        files.Ok["gleam-packages/gleam-wasm/gleam.js"];
+      files.Ok["gleam-packages/gleam_stdlib/gleam_stdlib.js"] =
+        files.Ok["build/packages/gleam_stdlib/src/gleam_stdlib.js"];
 
       bundle(files.Ok).then((bundled) => {
         const evalResult = eval(bundled);
 
-        if (evalResult != undefined && evalResult.hasOwnProperty("main")) {
-          document.getElementById("eval-output").textContent = evalResult.main();
+        if (
+          evalResult != undefined &&
+          Object.prototype.hasOwnProperty.call(evalResult, "main")
+        ) {
+          document.getElementById("eval-output").textContent =
+            evalResult.main();
         } else {
-          document.getElementById("eval-output").textContent = "Main function not found. It is defined and public?";
+          document.getElementById("eval-output").textContent =
+            "Main function not found. It is defined and public?";
         }
       });
     } else {
       erlangEditor.setValue(files.Ok["build/dev/erlang/gleam-wasm/main.erl"]);
 
-      document.getElementById("eval-output").textContent = "Compiled successfully!\n\nNote that the Erlang target is not executable in the browser.";
+      document.getElementById("eval-output").textContent =
+        "Compiled successfully!\n\nNote that the Erlang target is not executable in the browser.";
     }
   } else {
     document.getElementById("eval-output").textContent = files.Err;
   }
 }
 
-document.getElementById("compile").addEventListener("click", (e) => {
+document.getElementById("compile").addEventListener("click", (_event) => {
   compile();
 });
 
-document.getElementById("share").addEventListener("click", async (e) => {
-  let base64source = LZString_compressToBase64(gleamEditor.getValue());
+document.getElementById("share").addEventListener("click", async (_event) => {
+  const base64source = LZString_compressToBase64(gleamEditor.getValue());
 
-  var url = new URL(window.location.href.split("?")[0]);
+  const url = new URL(window.location.href.split("?")[0]);
   url.searchParams.append("s", base64source);
 
   await navigator.clipboard.writeText(url.toString());
@@ -166,27 +187,18 @@ document.getElementById("share").addEventListener("click", async (e) => {
   notyf.success("Link copied to clipboard!");
 });
 
-document.getElementById("target-javascript").addEventListener("click", async (e) => {
-  target = TargetLanguage.JavaScript;
-  document.getElementById("target-erlang").classList.toggle("active");
-  document.getElementById("target-javascript").classList.toggle("active");
+document
+  .getElementById("target-erlang")
+  .addEventListener("click", async (_event) => {
+    target = TargetLanguage.Erlang;
+    document.getElementById("target-erlang").classList.toggle("active");
+    document.getElementById("target-javascript").classList.toggle("active");
 
-  document.getElementById("target-erlang").removeAttribute("disabled");
-  document.getElementById("target-javascript").setAttribute("disabled", "");
+    document.getElementById("target-erlang").setAttribute("disabled", "");
+    document.getElementById("target-javascript").removeAttribute("disabled");
 
-  targetChanged();
-});
-
-document.getElementById("target-erlang").addEventListener("click", async (e) => {
-  target = TargetLanguage.Erlang;
-  document.getElementById("target-erlang").classList.toggle("active");
-  document.getElementById("target-javascript").classList.toggle("active");
-
-  document.getElementById("target-erlang").setAttribute("disabled", "");
-  document.getElementById("target-javascript").removeAttribute("disabled");
-
-  targetChanged();
-});
+    targetChanged();
+  });
 
 function targetChanged() {
   document.getElementById("javascript-output").classList.toggle("hidden");
