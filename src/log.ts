@@ -186,11 +186,17 @@ const primitives = {
         if (context === 'normal') return arg;
         if (arg.length > 200) {
             const json = JSON.stringify(arg);
-            return styled('str', frag(
+            const elem = styled('str', frag(
                 json.substr(0, 170),
-                styled('clear', '...'),
+                h({
+                    tag: 'a',
+                    className: 'clear',
+                    attributes: { href: 'javascript:void()' },
+                    on: { click: () => void (elem.textContent = json) },
+                }, '...'),
                 json.substr(json.length - 25),
             ));
+            return elem;
         } else {
             return styled('str', JSON.stringify(arg));
         }
@@ -281,18 +287,22 @@ const objects = {
         return expandIfNormal(context, arg, frag('[', ...arr, ']'));
     },
     Element(arg: Element, context: Context): Node | string {
-        if (context !== 'field') {
-            return frag('<', styled('tag', arg.nodeName.toLowerCase()), '>');
-        }
+        try {
+            if (context === 'field') {
+                return frag('<', styled('tag', arg.nodeName.toLowerCase()), '>');
+            }
 
-        const attrs: (Node | string)[] = [];
-        for (let i = 0; i < arg.attributes.length; i++) {
-            const attr = arg.attributes[i];
-            attrs.push(` ${attr.localName}=`);
-            attrs.push(styled('str', JSON.stringify(attr.value)));
+            const attrs: (Node | string)[] = [];
+            for (let i = 0; i < arg.attributes.length; i++) {
+                const attr = arg.attributes[i];
+                attrs.push(` ${attr.localName}=`);
+                attrs.push(styled('str', JSON.stringify(attr.value)));
+            }
+            return expandIfNormal(context, arg,
+                frag('<', styled('tag', arg.nodeName.toLowerCase()), ...attrs, '>'));
+        } catch (e) {
+            return expandIfNormal(context, arg, styled('tag', arg.constructor.name));
         }
-        return expandIfNormal(context, arg,
-            frag('<', styled('tag', arg.nodeName.toLowerCase()), ...attrs, '>'));
     },
     Error(arg: Error, context: Context): Node | string {
         if (context === 'field') return styled('tag', arg.name);
