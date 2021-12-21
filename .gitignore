@@ -1,5 +1,5 @@
 /node_modules
-!/node_moudles/.keep
+!/node_modules/.keep
 /dist
 !/dist/.keep
 .lsp

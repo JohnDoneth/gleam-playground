@@ -131,7 +131,7 @@ async function compile() {
 
   localStorage.setItem("gleam-source", gleam_input);
 
-  let files: { Ok?: Record<string, string>, Err?: string };
+  let files: { Ok?: Record<string, string>; Err?: string };
   if (target == TargetLanguage.JavaScript) {
     files = (await gleamWasm).compile_to_js(gleam_input);
   } else {
@@ -164,7 +164,12 @@ async function compile() {
             logger.log(evalResult.main());
           } catch (e) {
             if (e.gleam_error) {
-              logger.error(`Error: ${e.gleam_error}\n  module: ${e.module}\n  line:`, e.line, `\n  fn: ${e.fn}\n  value:`, e.value)
+              logger.error(
+                `Error: ${e.gleam_error}\n  module: ${e.module}\n  line:`,
+                e.line,
+                `\n  fn: ${e.fn}\n  value:`,
+                e.value
+              );
             } else {
               logger.error(e);
             }
@@ -177,7 +182,9 @@ async function compile() {
     } else {
       erlangEditor.setValue(files.Ok["build/dev/erlang/gleam-wasm/main.erl"]);
 
-      logger.log("Compiled successfully!\n\nNote that the Erlang target is not executable in the browser.");
+      logger.log(
+        "Compiled successfully!\n\nNote that the Erlang target is not executable in the browser."
+      );
     }
   } else {
     logger.clear();
