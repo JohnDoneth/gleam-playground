@@ -1,5 +1,7 @@
-node_modules
-dist
+/node_modules
+!/node_moudles/.keep
+/dist
+!/dist/.keep
 .lsp
 .psc-ide-port
 .ionide
