@@ -1,4 +1,4 @@
-import { H, h, hh as frag, styled } from "./virtualdom";
+import { H, h, frag, styled } from "./virtualdom";
 
 export class HtmlLogger {
     private counts = {};
@@ -22,7 +22,7 @@ export class HtmlLogger {
         const item = document.createElement('div');
         item.setAttribute('data-log-level', logLevel);
         for (const arg of args) {
-            item.append(toLogItem(arg, 2));
+            item.append(format(arg, 'normal'));
             item.append(' ');
         }
         this.activeGroup.append(item);
@@ -178,123 +178,194 @@ export class HtmlLogger {
     }
 }
 
-function toLogItem(arg: any, details = 0): Node {
-    switch (typeof arg) {
-        case "string":
-            if (details >= 2) {
-                return h(arg);
-            } else if (arg.length > 200) {
-                const json = JSON.stringify(arg);
-                return styled('str', frag(
-                    json.substr(0, 170),
-                    styled('clear', h('...')),
-                    json.substr(json.length - 20),
-                ));
-            } else {
-                return styled('str', JSON.stringify(arg));
-            }
-        case "number":
-            return styled('num', arg + '');
-        case "bigint":
-            return styled('num', arg + 'n');
-        case "symbol":
-            return styled('sym', `Symbol(${arg.description})`);
-        case "undefined":
-            return styled('undef', 'undefined');
-        case "boolean":
-            return styled('bool', '' + arg);
-        case "function":
-            let text: string;
-            if (details >= 2) {
-                text = arg.toString().replace(/^function/, '');
-            } else if (details === 1) {
-                text = shortenSignature(arg.toString()).replace(/^function\s*/, '');
-            } else {
-                text = arg.name == '' ? '' : arg.name + '()';
-            }
-            return expandable(arg, styled('fn', text === '' ? 'f()' : 'f '), text);
-        case "object":
-            if (arg === null) return styled('undef', 'null');
-            if (arg instanceof Array) {
-                if (details <= 0) {
-                    return expandable(arg, '[', styled('clear', arg.length + ' elements'), ']');
-                } else {
-                    const shown = details === 2 ? 40 : 10;
-                    const arr = arg.slice(0, shown).flatMap((v) => [toLogItem(v), ', ']);
-                    if (arr.length) arr.pop();
-                    if (shown < arg.length) {
-                        arr.push(styled('clear', ` ...${arg.length - shown} more elements`));
-                    }
-                    return expandable(arg, '[', ...arr, ']');
-                }
-            }
-            if (details <= 0) {
-                return expandable(arg, styled('tag', arg.constructor.name));
-            }
-            if (arg.constructor === Object) {
-                const arr: (Node | string | H)[] = [];
-                const completed = enumerateSafe(arg, (k, v) => {
-                    arr.push(toLogItem(k), ': ', toLogItem(v), ', ');
-                }, details === 2 ? 50 : details === 1 ? 10 : 4);
-                if (arr.length) arr.pop();
-                if (!completed) arr.push(styled('clear', ' ...some entries omitted'));
+type Context = 'normal' | 'field' | 'tree-val';
 
-                return expandable(arg, '{ ', ...arr, ' }');
+const primitives = {
+    string(arg: string, context: Context): Node | string {
+        if (context === 'normal') return arg;
+        if (arg.length > 200) {
+            const json = JSON.stringify(arg);
+            return styled('str', frag(
+                json.substr(0, 170),
+                styled('clear', '...'),
+                json.substr(json.length - 25),
+            ));
+        } else {
+            return styled('str', JSON.stringify(arg));
+        }
+    },
+    number(arg: number, context: Context): Node {
+        return styled('num', arg + '');
+    },
+    bigint(arg: bigint, context: Context): Node {
+        return styled('num', arg + 'n');
+    },
+    symbol(arg: symbol, context: Context): Node {
+        return styled('sym', `Symbol(${arg.description})`);
+    },
+    undefined(_: undefined, context: Context): Node {
+        return styled('undef', 'undefined');
+    },
+    boolean(arg: boolean, context: Context): Node {
+        return styled('bool', '' + arg);
+    },
+    function(arg: Function, context: Context): Node | string {
+        if (context === 'field') {
+            if (arg.name == null || arg.name === '') {
+                return frag(styled('fn', 'f()'));
+            } else {
+                return frag(styled('fn', 'f'), ` ${arg.name}()`);
             }
-            switch (arg.constructor) {
-                case Date:
-                    return expandable(arg, styled('tag', 'Date'), ' ', styled('repr', arg.toString()));
-                case Number:
-                    return expandable(arg, styled('tag', 'Number'), ' ', styled('num', arg + ''));
-                case Boolean:
-                    return expandable(arg, styled('tag', 'Boolean'), ' ', styled('bool', arg + ''));
-                case String:
-                    return expandable(arg, styled('tag', 'String'), ' ', styled('str', JSON.stringify(arg)));
-                default:
-                    if (arg instanceof Element) {
-                        const attrs: (Node | string)[] = []
-                        for (let i = 0; i < arg.attributes.length; i++) {
-                            const attr = arg.attributes[i];
-                            attrs.push(` ${attr.localName}=`);
-                            attrs.push(styled('str', JSON.stringify(attr.value)));
-                        }
-                        return expandable(arg, '<', styled('tag', arg.nodeName.toLowerCase()), ...attrs, '>');
-                    } else if (arg instanceof Error) {
-                        return expandable(arg, styled('tag', arg.name), ' ', styled('repr', arg.message));
-                    } else if (arg instanceof Promise) {
-                        return expandable(
-                            arg,
-                            styled('tag', arg.constructor.name),
-                            ' ',
-                            h({
-                                tag: 'button', on: {
-                                    click(e) {
-                                        arg.then(value => {
-                                            (e.target as HTMLElement).replaceWith(
-                                                styled('repr', 'fulfilled: '),
-                                                toLogItem(value, details),
-                                            );
-                                        }, err => {
-                                            (e.target as HTMLElement).replaceWith(
-                                                styled('repr', 'rejected: '),
-                                                toLogItem(err, details),
-                                            );
-                                        });
-                                    }
-                                }
-                            }, 'await'),
-                        );
-                    }
+        }
 
-                    const arr: (Node | string | H)[] = [];
-                    const completed = enumerateSafe(arg, (k, v) => {
-                        arr.push(toLogItem(k), ': ', toLogItem(v), ', ');
-                    }, details === 2 ? 25 : details === 1 ? 8 : 3);
-                    if (arr.length) arr.pop();
-                    if (!completed) arr.push(styled('clear', ' ...some entries omitted'));
-                    return expandable(arg, styled('tag', arg.constructor.name), ' { ', ...arr, ' }');
-            }
+        const text = shortenSignature(arg.toString()).replace(/^function\s*/, '');
+        return expandIfNormal(context, arg, frag(styled('fn', 'f '), text));
+    },
+    object(arg: object, context: Context): Node | string {
+        if (arg === null) return styled('undef', 'null');
+
+        const constructor = arg.constructor.name;
+
+        if (constructor in objects && arg instanceof window[constructor]) {
+            return objects[constructor](arg, context);
+        }
+
+        if (arg instanceof Array) {
+            return objects.Array(arg, context);
+        } else if (arg instanceof Element) {
+            return objects.Element(arg, context);
+        } else if (arg instanceof Error) {
+            return objects.Error(arg, context);
+        } else if (arg instanceof Promise) {
+            return objects.Promise(arg, context);
+        }
+
+        if (context === 'field') return styled('tag', constructor);
+
+        const arr: (Node | string | H)[] = [];
+        const completed = enumerateSafe(arg, (k, v) => {
+            arr.push(formatField(k), ': ', format(v, 'field'), ', ');
+        }, (context === 'normal') ? 9 : (context === 'tree-val') ? 3 : 0);
+        if (arr.length) arr.pop();
+        if (!completed) arr.push(styled('clear', ' …'));
+        return expandIfNormal(context, arg,
+            frag(styled('tag', arg.constructor.name), ' { ', ...arr, ' }'));
     }
+}
+
+const objects = {
+    Object(arg: Object, context: Context): Node | string {
+        if (context === 'field') return '{…}';
+
+        const arr: (Node | string | H)[] = [];
+        const completed = enumerateSafe(arg, (k, v) => {
+            arr.push(formatField(k), ': ', format(v, 'field'), ', ');
+        }, (context === 'normal') ? 9 : (context === 'tree-val') ? 3 : 0);
+        if (arr.length) arr.pop();
+        if (!completed) arr.push(styled('clear', ' …'));
+
+        return expandIfNormal(context, arg, frag('{ ', ...arr, ' }'));
+    },
+    Array(arg: Array<any>, context: Context): Node | string {
+        if (context === 'field') {
+            return frag('[', styled('clear', `…${arg.length} items`), ']');
+        }
+
+        const shown = context === 'normal' ? 40 : 10;
+        const arr = arg.slice(0, shown).flatMap((v) => [format(v, 'field'), ', ']);
+        if (arr.length) arr.pop();
+        if (shown < arg.length) {
+            arr.push(styled('clear', ` …${arg.length - shown} more items`));
+        }
+        return expandIfNormal(context, arg, frag('[', ...arr, ']'));
+    },
+    Element(arg: Element, context: Context): Node | string {
+        if (context !== 'field') {
+            return frag('<', styled('tag', arg.nodeName.toLowerCase()), '>');
+        }
+
+        const attrs: (Node | string)[] = [];
+        for (let i = 0; i < arg.attributes.length; i++) {
+            const attr = arg.attributes[i];
+            attrs.push(` ${attr.localName}=`);
+            attrs.push(styled('str', JSON.stringify(attr.value)));
+        }
+        return expandIfNormal(context, arg,
+            frag('<', styled('tag', arg.nodeName.toLowerCase()), ...attrs, '>'));
+    },
+    Error(arg: Error, context: Context): Node | string {
+        if (context === 'field') return styled('tag', arg.name);
+
+        return expandIfNormal(context, arg,
+            frag(styled('tag', arg.name), ' ', styled('repr', arg.message)));
+    },
+    Date(arg: Date, context: Context): Node | string {
+        const name = arg.constructor.name;
+        if (context === 'field') return styled('tag', name);
+
+        return expandIfNormal(context, arg,
+            frag(styled('tag', name), ' ', styled('repr', arg.toString())));
+    },
+    CSSStyleDeclaration(arg: CSSStyleDeclaration, context: Context): Node | string {
+        const name = arg.constructor.name;
+        if (context === 'field') return styled('tag', name);
+
+        return expandIfNormal(context, arg,
+            frag(styled('tag', name), ' ', styled('repr', JSON.stringify(arg.cssText))));
+    },
+    HTMLDocument(arg: Document, context: Context): Node | string {
+        const name = arg.constructor.name;
+        if (context === 'field') return styled('tag', name);
+
+        return expandIfNormal(context, arg,
+            frag(styled('tag', name), ' ', styled('repr', JSON.stringify(arg.documentURI))));
+    },
+    Window(arg: Window, context: Context): Node | string {
+        const name = arg.constructor.name;
+        if (context === 'field') return styled('tag', name);
+
+        return expandIfNormal(context, arg,
+            frag(styled('tag', name), ' ', styled('repr', JSON.stringify(arg.location.href))));
+    },
+    Promise(arg: Promise<any>, context: Context): Node | string {
+        const name = arg.constructor.name;
+        if (context === 'field') return styled('tag', name);
+
+        const click = (e: Event) => {
+            const target = e.target as Element;
+            arg.then(
+                value => target.replaceWith(styled('repr', 'fulfilled: '), format(value, context)),
+                err => target.replaceWith(styled('repr', 'rejected: '), format(err, context)),
+            );
+        };
+        return expandIfNormal(context, arg,
+            frag(styled('tag', name), ' ', h({ tag: 'button', on: { click } }, 'await')));
+    },
+
+    Number(arg: Number, context: Context): Node | string {
+        if (context === 'field') return primitives.number(arg.valueOf(), context);
+        return expandIfNormal(context, arg, primitives.number(arg.valueOf(), context));
+    },
+    String(arg: String, context: Context): Node | string {
+        if (context === 'field') return primitives.string(arg.valueOf(), context);
+        return expandIfNormal(context, arg, primitives.string(arg.valueOf(), context));
+    },
+    Boolean(arg: Boolean, context: Context): Node | string {
+        if (context === 'field') return primitives.boolean(arg.valueOf(), context);
+        return expandIfNormal(context, arg, primitives.boolean(arg.valueOf(), context));
+    },
+}
+
+function format(arg: any, context: Context): Node | string {
+    return primitives[typeof arg](arg, context);
+}
+
+function formatField(k: string) {
+    return /^[\w_\d]+$/.test(k) ? styled('field', k) : styled('str', JSON.stringify(k));
+}
+
+function expandIfNormal(context: Context, value: any, fragment: Node | string): Node | string {
+    return context === 'normal' ? expandable(value, fragment) : fragment;
 }
 
 function arrowButton(closed = false, onToggle: (closed: boolean, e: MouseEvent) => void): HTMLElement {
@@ -309,31 +380,33 @@ function arrowButton(closed = false, onToggle: (closed: boolean, e: MouseEvent) 
     return el;
 }
 
-function openObject(obj: object): Node {
+const objConstructor = Object.getPrototypeOf({});
+
+function openObject(obj: object, key?: Node): Node {
     if (typeof obj === 'function') {
         return h({ className: 'object' }, obj.toString());
     } else {
         const entryNodes: Node[] = [];
         enumerateSafe(obj, (k, v) => {
-            const key = /^[\w\d]+$/.test(k) ? styled('tag', k) : styled('str', JSON.stringify(k));
-            entryNodes.push(h({}, frag(key, ': ', toLogItem(v, v === obj ? 0 : 1))));
-        })
-        if ((obj as any).__proto__ != null) {
-            entryNodes.push(h({}, frag(styled('clear', '<prototype>'), ': ', toLogItem((obj as any).__proto__, 0))));
+            if ((typeof v === 'object' && v != null) || typeof v === 'function') {
+                entryNodes.push(expandable(v, frag(formatField(k), ': ', format(v, 'tree-val'))));
+            } else {
+                entryNodes.push(h({}, frag(formatField(k), ': ', format(v, 'tree-val'))));
+            }
+        });
+        const proto = Object.getPrototypeOf(obj);
+        if (proto != null && proto !== objConstructor) {
+            entryNodes.push(expandable(proto, frag(styled('clear', '[[Prototype]]'), ': ', format(proto, 'field'))));
         }
 
-        return h({ className: 'object' }, frag(
-            h({ tag: 'b', className: 'tag' }, obj.constructor.name),
-            ...entryNodes,
-        ));
+        return h({ className: 'object' }, frag(...entryNodes));
     }
 }
 
 function enumerateSafe(obj: object, forEach: (k: string, v: any) => void, limit = -1): boolean {
     let count = 0;
-    const found = {};
-    for (const key in obj) {
-        found[key] = true;
+    const ownKeys = Object.getOwnPropertyNames(obj);
+    for (const key of ownKeys) {
         let value: any;
         try {
             value = obj[key];
@@ -347,37 +420,55 @@ function enumerateSafe(obj: object, forEach: (k: string, v: any) => void, limit 
         }
     }
 
-    const ownKeys = Object.getOwnPropertyNames(obj);
-    for (const key of ownKeys) {
-        if (found[key]) continue;
-        let value: any;
-        try {
-            value = obj[key];
-        } catch (e) {
-            value = e;
+    let proto = Object.getPrototypeOf(obj);
+    while (proto != null && proto !== objConstructor) {
+        const descriptors = Object.getOwnPropertyDescriptors(proto);
+        for (const key in descriptors) {
+            const desc = descriptors[key];
+            if (desc.get) {
+                let value: any;
+                try {
+                    value = obj[key];
+                } catch (e) {
+                    value = e;
+                }
+                forEach(key, value);
+                if (limit !== -1) {
+                    count++;
+                    if (count === limit) return false;
+                }
+            }
         }
-        forEach(key, value);
-        if (limit !== -1) {
-            count++;
-            if (count === limit) return false;
-        }
+        proto = Object.getPrototypeOf(proto);
     }
     return true;
 }
 
-function expandable(obj: object, ...closedState: (string | Node | H)[]): Node {
-    const closedNode = h({}, frag(...closedState));
-    return frag(arrowButton(true, (closed, e) => {
-        const node = e.target as HTMLElement;
-        const next = node.nextElementSibling;
+function expandable(obj: object, titleClosed: string | Node, titleOpen?: string | Node): HTMLElement {
+    const titleNode = h({}, titleClosed);
+
+    const bodyNode = h({});
+    const arrow = arrowButton(true, (closed, _) => {
         if (closed) {
-            node.parentElement.insertBefore(closedNode, next);
-            next.remove();
+            bodyNode.style.display = 'none';
+            if (titleOpen) {
+                titleNode.innerHTML = '';
+                titleNode.append(titleClosed);
+            }
         } else {
-            node.parentElement.insertBefore(openObject(obj), next);
-            next.remove();
+            if (bodyNode.childElementCount === 0) {
+                bodyNode.append(openObject(obj));
+            }
+            bodyNode.style.display = 'block';
+            if (titleOpen) {
+                titleNode.innerHTML = '';
+                titleNode.append(titleOpen);
+            }
         }
-    }), closedNode);
+    });
+
+    const elem = h({ className: 'expand' }, frag(arrow, titleNode, bodyNode));
+    return elem;
 }
 
 const consoleFields = [
@@ -419,7 +510,7 @@ consoleFields.forEach(name => browserConsole[name] = console[name]);
  * @returns the function signature (without body)
  */
 function shortenSignature(signature: string): string {
-    const sig = signature.replace(/(\/\/.*?\n|\/\*.*?\*\/)/, '');
+    const sig = signature.replace(/(\/\/.*?\n|\/\*.*?\*\/)/g, '');
     let body = sig.replace(/^(async\s*)?(function\s*)?\*?\s*[\w\d]*\s*/, '');
     if (body.startsWith('=>')) {
         body = body.substr(2);
@@ -480,5 +571,10 @@ function shortenSignature(signature: string): string {
         }
     }
     const sigLength = sig.length - body.length;
+
+    if (sig.startsWith('class ')) {
+        return (sig.substr(0, sigLength) + ' }').replace(/[\s\n]+/g, ' ');
+    }
+
     return sig.substr(0, sigLength).replace(/(\s*=>)?\s*$/, '');
 }

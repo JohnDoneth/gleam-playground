@@ -259,7 +259,7 @@ body,
 
 .log-container {
   font-family: monospace, monospace;
-  font-size: 90%;
+  font-size: 85%;
   user-select: text;
   margin: 0 10px;
   border: 1px solid #aaa;
@@ -277,18 +277,6 @@ body,
 .log-container .group-header {
   color: #333;
   font-weight: bold;
-}
-
-.log-container [data-log-level] div {
-  display: inline-block;
-  vertical-align: text-top;
-}
-
-.log-container [data-log-level] .object {
-  display: inline-flex;
-  flex-direction: column;
-  border-left: 2px solid #aaa;
-  padding: 0 10px;
 }
 
 .log-container [data-log-level="clear"] {
@@ -320,6 +308,9 @@ body,
 .log-container .sym {
   color: #035d00;
 }
+.log-container .field {
+  color: #8d0081;
+}
 .log-container .undef {
   color: #777;
 }
@@ -339,18 +330,39 @@ body,
   display: none;
 }
 
+.log-container [data-log-level] div {
+  display: inline-block;
+  vertical-align: text-top;
+}
+
+.log-container [data-log-level] .object {
+  display: inline-flex;
+  flex-direction: column;
+  border-left: 2px solid #ccc;
+  padding: 0 5px 0 25px;
+}
+
 .log-container button {
   border: none;
   margin: -2px 0;
   padding: 0;
   display: inline-block;
-  height: 22px;
-  min-width: 22px;
+  height: 20px;
+  min-width: 20px;
   text-align: center;
   background-color: transparent;
   letter-spacing: 0.02em;
 }
 
+.log-container .expand {
+  padding: 0 0 0 20px;
+}
+
 .log-container button.arrow-button {
   font-size: 110%;
+  margin-left: -20px;
+}
+
+.log-container .object > .expand {
+  margin-left: -20px;
 }

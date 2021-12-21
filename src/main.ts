@@ -150,7 +150,7 @@ async function compile() {
         } else {
           logger.log("Main function not found. It is defined and public?");
         }
-        // logger.unmountGlobally();
+        logger.unmountGlobally();
       });
     } else {
       erlangEditor.setValue(files.Ok["build/dev/erlang/gleam-wasm/main.erl"]);
