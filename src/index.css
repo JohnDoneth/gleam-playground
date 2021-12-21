@@ -53,8 +53,8 @@ body {
   justify-content: space-between;
   background-color: #ffaff3;
   border-bottom: 1px solid black;
-  box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px,
-    rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.06) 0px 1px 2px 0px;
+  box-shadow: rgba(0 0 0 0%) 0 0 0 0, rgba(0 0 0 0%) 0 0 0 0%,
+    rgba(0 0 0 10%) 0 1px 3px 0, rgba(0 0 0 6%) 0 1px 2px 0;
 }
 
 .editor {
@@ -71,13 +71,14 @@ body {
   flex-grow: 1;
 }
 
+/* stylelint-disable no-duplicate-selectors */
 .content {
   flex-direction: column;
   width: 100%;
   height: calc(100vh - 61px);
 }
 
-@media (min-width: 800px) and (-webkit-min-device-pixel-ratio: 1) {
+@media (min-width: 800px) and (min-resolution: 1dppx) {
   .content {
     flex-direction: row;
     overflow-y: hidden;
@@ -117,11 +118,11 @@ button {
 }
 
 button:hover {
-  background-color: rgb(240, 240, 240);
+  background-color: rgb(240 240 240);
 }
 
 button:active {
-  background-color: rgb(200, 200, 200);
+  background-color: rgb(200 200 200);
 }
 
 #js-editor {
@@ -129,7 +130,7 @@ button:active {
 }
 
 .header > h2 {
-  margin: 0px;
+  margin: 0;
 }
 
 .gh-link {
@@ -137,6 +138,7 @@ button:active {
   height: 24px;
 }
 
+/* stylelint-disable selector-class-pattern */
 .notyf__wrapper > * {
   color: black;
   font-family: "Outfit", sans-serif;
@@ -147,7 +149,7 @@ button:active {
 }
 
 .btn-group button.active {
-  background-color: rgb(230, 230, 230);
+  background-color: rgb(230 230 230);
   cursor: default;
 }
 
