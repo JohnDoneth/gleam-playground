@@ -4,7 +4,7 @@ import * as gleamWasm from "gleam-wasm";
 import { Notyf } from "notyf";
 import { registerGleam } from "./gleam";
 import * as monaco from "monaco-editor";
-
+import { decompressFromBase64 as LZString_decompressFromBase64, compressToBase64 as LZString_compressToBase64 } from "lz-string";
 import "./index.css";
 import "notyf/notyf.min.css";
 
@@ -61,35 +61,35 @@ let target = TargetLanguage.JavaScript;
 let source = localStorage.getItem("gleam-source") || initialSource;
 
 const urlParams = new URLSearchParams(window.location.search);
+const zippedSourceParam = urlParams.get("s");
 const sourceParam = urlParams.get("source");
 
-if (sourceParam) {
+if (zippedSourceParam) {
+  source = LZString_decompressFromBase64(zippedSourceParam);
+} else if (sourceParam) {
   source = window.atob(sourceParam);
 }
 
-const gleamEditor = monaco.editor.create(
-  document.getElementById("gleam-editor"),
-  {
-    value: source,
-    language: "gleam",
-    automaticLayout: true,
-  }
-);
-
-const jsEditor = monaco.editor.create(document.getElementById("js-editor"), {
-  value: "// Click Build & Run to see JavaScript output here.",
-  language: "javascript",
+const gleamEditor = monaco.editor.create(document.getElementById("gleam-editor"), {
+  value: source,
+  language: "gleam",
   automaticLayout: true,
+  readOnly: false,
 });
 
-const erlangEditor = monaco.editor.create(
-  document.getElementById("erlang-editor"),
-  {
-    value: "// Click Build to see Erlang output here.",
-    language: "erlang",
-    automaticLayout: true,
-  }
-);
+const jsEditor = monaco.editor.create(document.getElementById("javascript-editor"), {
+  value: "// Click [Build & Run] to see JavaScript output here…",
+  language: "javascript",
+  automaticLayout: true,
+  readOnly: true,
+});
+
+const erlangEditor = monaco.editor.create(document.getElementById("erlang-editor"), {
+  value: "// Click [Build] to see Erlang output here…",
+  language: "erlang",
+  automaticLayout: true,
+  readOnly: true,
+});
 
 async function bundle(files) {
   const inputOptions = {
@@ -145,8 +145,7 @@ async function compile() {
           document.getElementById("eval-output").textContent =
             evalResult.main();
         } else {
-          document.getElementById("eval-output").textContent =
-            "Main function not found. It is defined and public?";
+          document.getElementById("eval-output").textContent = "Main function not found. It is defined and public?";
         }
       });
     } else {
@@ -165,28 +164,15 @@ document.getElementById("compile").addEventListener("click", (_event) => {
 });
 
 document.getElementById("share").addEventListener("click", async (_event) => {
-  const base64source = window.btoa(gleamEditor.getValue());
+  const base64source = LZString_compressToBase64(gleamEditor.getValue());
 
   const url = new URL(window.location.href.split("?")[0]);
-  url.searchParams.append("source", base64source);
+  url.searchParams.append("s", base64source);
 
   await navigator.clipboard.writeText(url.toString());
 
-  notyf.success("Link Copied to Clipboard!");
+  notyf.success("Link copied to clipboard!");
 });
-
-document
-  .getElementById("target-javascript")
-  .addEventListener("click", async (_event) => {
-    target = TargetLanguage.JavaScript;
-    document.getElementById("target-erlang").classList.toggle("active");
-    document.getElementById("target-javascript").classList.toggle("active");
-
-    document.getElementById("target-erlang").removeAttribute("disabled");
-    document.getElementById("target-javascript").setAttribute("disabled", "");
-
-    targetChanged();
-  });
 
 document
   .getElementById("target-erlang")
@@ -206,9 +192,9 @@ function targetChanged() {
   document.getElementById("erlang-output").classList.toggle("hidden");
 
   if (target == TargetLanguage.JavaScript) {
-    document.getElementById("compile").textContent = "Build & Run";
+    document.querySelector("#compile nobr").textContent = "Build & Run";
   } else {
-    document.getElementById("compile").textContent = "Build";
+    document.querySelector("#compile nobr").textContent = "Build";
   }
 
   document.getElementById("eval-output").textContent = "";
