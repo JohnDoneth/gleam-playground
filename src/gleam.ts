@@ -60,7 +60,7 @@ export function registerGleam(monaco) {
     ],
 
     // we include these common regular expressions
-    symbols: /[=><!~?:&|+\-*\/\^%]+/,
+    symbols: /[=><!~?:&|+\-*/^%]+/,
 
     // C# style strings
     escapes:
@@ -80,13 +80,13 @@ export function registerGleam(monaco) {
             },
           },
         ],
-        [/[A-Z][\w\$]*/, "type.identifier"], // to show class names nicely
+        [/[A-Z][\w$]*/, "type.identifier"], // to show class names nicely
 
         // whitespace
         { include: "@whitespace" },
 
         // delimiters and operators
-        [/[{}()\[\]]/, "@brackets"],
+        [/[{}()[\]]/, "@brackets"],
         [/[<>](?!@symbols)/, "@brackets"],
         [/@symbols/, { cases: { "@operators": "operator", "@default": "" } }],
 
@@ -94,12 +94,12 @@ export function registerGleam(monaco) {
         // As an example, we emit a debugging log message on these tokens.
         // Note: message are supressed during the first load -- change some lines to see them.
         [
-          /@\s*[a-zA-Z_\$][\w\$]*/,
+          /@\s*[a-zA-Z_$][\w$]*/,
           { token: "annotation", log: "annotation token: $0" },
         ],
 
         // numbers
-        [/\d*\.\d+([eE][\-+]?\d+)?/, "number.float"],
+        [/\d*\.\d+([eE][-+]?\d+)?/, "number.float"],
         [/0[xX][0-9a-fA-F]+/, "number.hex"],
         [/\d+/, "number"],
 
@@ -116,7 +116,7 @@ export function registerGleam(monaco) {
         [/'/, "string.invalid"],
       ],
 
-      comment: [[/[^\/*]+/, "comment"]],
+      comment: [[/[^/*]+/, "comment"]],
 
       string: [
         [/[^\\"]+/, "string"],
@@ -144,7 +144,7 @@ export function registerGleam(monaco) {
         endColumn: word.endColumn,
       };
 
-      var suggestions = [
+      const suggestions = [
         // Keywords
         {
           label: "import",
@@ -370,7 +370,8 @@ export function registerGleam(monaco) {
         {
           label: "pfn1",
           kind: monaco.languages.CompletionItemKind.Snippet,
-          insertText: "pub fn ${1:name}(${2:param}: ${3:type}) -> ${4:type} {\n\t${5:body}\n}",
+          insertText:
+            "pub fn ${1:name}(${2:param}: ${3:type}) -> ${4:type} {\n\t${5:body}\n}",
           insertTextRules:
             monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
           range: range,
@@ -378,7 +379,8 @@ export function registerGleam(monaco) {
         {
           label: "fn1",
           kind: monaco.languages.CompletionItemKind.Snippet,
-          insertText: "fn ${1:name}(${2:param}: ${3:type}) -> ${4:type} {\n\t${5:body}\n}",
+          insertText:
+            "fn ${1:name}(${2:param}: ${3:type}) -> ${4:type} {\n\t${5:body}\n}",
           insertTextRules:
             monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
           range: range,

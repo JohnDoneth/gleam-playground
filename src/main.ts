@@ -5,7 +5,10 @@ import { Notyf } from "notyf";
 import { registerGleam } from "./gleam";
 import * as monaco from "monaco-editor";
 import { HtmlLogger } from "./log";
-
+import {
+  decompressFromBase64 as LZString_decompressFromBase64,
+  compressToBase64 as LZString_compressToBase64,
+} from "lz-string";
 import "./index.css";
 import "notyf/notyf.min.css";
 
@@ -62,31 +65,44 @@ let target = TargetLanguage.JavaScript;
 let source = localStorage.getItem("gleam-source") || initialSource;
 
 const urlParams = new URLSearchParams(window.location.search);
+const zippedSourceParam = urlParams.get("s");
 const sourceParam = urlParams.get("source");
 
-if (sourceParam) {
+if (zippedSourceParam) {
+  source = LZString_decompressFromBase64(zippedSourceParam);
+} else if (sourceParam) {
   source = window.atob(sourceParam);
 }
 
-const gleamEditor = monaco.editor.create(document.getElementById("gleam-editor"), {
-  value: source,
-  language: "gleam",
-  automaticLayout: true,
-});
+const gleamEditor = monaco.editor.create(
+  document.getElementById("gleam-editor"),
+  {
+    value: source,
+    language: "gleam",
+    automaticLayout: true,
+    readOnly: false,
+  }
+);
 
-const jsEditor = monaco.editor.create(document.getElementById("javascript-editor"), {
-  value: "// Click [Build & Run] to see JavaScript output here…",
-  language: "javascript",
-  automaticLayout: true,
-  readOnly: true,
-});
+const jsEditor = monaco.editor.create(
+  document.getElementById("javascript-editor"),
+  {
+    value: "// Click [Build & Run] to see JavaScript output here…",
+    language: "javascript",
+    automaticLayout: true,
+    readOnly: true,
+  }
+);
 
-const erlangEditor = monaco.editor.create(document.getElementById("erlang-editor"), {
-  value: "// Click [Build] to see Erlang output here…",
-  language: "erlang",
-  automaticLayout: true,
-  readOnly: true,
-});
+const erlangEditor = monaco.editor.create(
+  document.getElementById("erlang-editor"),
+  {
+    value: "// Click [Build] to see Erlang output here…",
+    language: "erlang",
+    automaticLayout: true,
+    readOnly: true,
+  }
+);
 
 async function bundle(files: Record<string, string>): Promise<string> {
   const inputOptions = {
@@ -127,9 +143,12 @@ async function compile() {
       jsEditor.setValue(files.Ok["gleam-packages/gleam-wasm/main.js"]);
 
       // TODO: remove these hardcoded paths.
-      files.Ok["./gleam-packages/gleam-wasm/main.js"] = files.Ok["gleam-packages/gleam-wasm/main.js"];
-      files.Ok["./gleam-packages/gleam-wasm/gleam.js"] = files.Ok["gleam-packages/gleam-wasm/gleam.js"];
-      files.Ok["gleam-packages/gleam_stdlib/gleam_stdlib.js"] = files.Ok["build/packages/gleam_stdlib/src/gleam_stdlib.js"];
+      files.Ok["./gleam-packages/gleam-wasm/main.js"] =
+        files.Ok["gleam-packages/gleam-wasm/main.js"];
+      files.Ok["./gleam-packages/gleam-wasm/gleam.js"] =
+        files.Ok["gleam-packages/gleam-wasm/gleam.js"];
+      files.Ok["gleam-packages/gleam_stdlib/gleam_stdlib.js"] =
+        files.Ok["build/packages/gleam_stdlib/src/gleam_stdlib.js"];
 
       bundle(files.Ok).then((bundled) => {
         const evalResult = eval(bundled);
@@ -137,7 +156,10 @@ async function compile() {
         logger.clear();
         logger.mountGlobally();
 
-        if (evalResult != undefined && evalResult.hasOwnProperty("main")) {
+        if (
+          evalResult != undefined &&
+          Object.prototype.hasOwnProperty.call(evalResult, "main")
+        ) {
           try {
             logger.log(evalResult.main());
           } catch (e) {
@@ -163,42 +185,33 @@ async function compile() {
   }
 }
 
-document.getElementById("compile").addEventListener("click", (e) => {
+document.getElementById("compile").addEventListener("click", (_event) => {
   compile();
 });
 
-document.getElementById("share").addEventListener("click", async (e) => {
-  let base64source = window.btoa(gleamEditor.getValue());
+document.getElementById("share").addEventListener("click", async (_event) => {
+  const base64source = LZString_compressToBase64(gleamEditor.getValue());
 
-  var url = new URL(window.location.href.split("?")[0]);
-  url.searchParams.append("source", base64source);
+  const url = new URL(window.location.href.split("?")[0]);
+  url.searchParams.append("s", base64source);
 
   await navigator.clipboard.writeText(url.toString());
 
   notyf.success("Link copied to clipboard!");
 });
 
-document.getElementById("target-javascript").addEventListener("click", async (e) => {
-  target = TargetLanguage.JavaScript;
-  document.getElementById("target-erlang").classList.toggle("active");
-  document.getElementById("target-javascript").classList.toggle("active");
+document
+  .getElementById("target-erlang")
+  .addEventListener("click", async (_event) => {
+    target = TargetLanguage.Erlang;
+    document.getElementById("target-erlang").classList.toggle("active");
+    document.getElementById("target-javascript").classList.toggle("active");
 
-  document.getElementById("target-erlang").removeAttribute("disabled");
-  document.getElementById("target-javascript").setAttribute("disabled", "");
+    document.getElementById("target-erlang").setAttribute("disabled", "");
+    document.getElementById("target-javascript").removeAttribute("disabled");
 
-  targetChanged();
-});
-
-document.getElementById("target-erlang").addEventListener("click", async (e) => {
-  target = TargetLanguage.Erlang;
-  document.getElementById("target-erlang").classList.toggle("active");
-  document.getElementById("target-javascript").classList.toggle("active");
-
-  document.getElementById("target-erlang").setAttribute("disabled", "");
-  document.getElementById("target-javascript").removeAttribute("disabled");
-
-  targetChanged();
-});
+    targetChanged();
+  });
 
 function targetChanged() {
   document.getElementById("javascript-output").classList.toggle("hidden");
