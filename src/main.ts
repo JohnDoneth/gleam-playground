@@ -4,11 +4,13 @@ import * as gleamWasm from "gleam-wasm";
 import { Notyf } from "notyf";
 import { registerGleam } from "./gleam";
 import * as monaco from "monaco-editor";
+import { HTMLLogger } from "./log";
 import {
   decompressFromBase64 as LZString_decompressFromBase64,
   compressToBase64 as LZString_compressToBase64,
 } from "lz-string";
 import "./index.css";
+import "./logging.css";
 import "notyf/notyf.min.css";
 
 // Create an instance of Notyf
@@ -28,7 +30,7 @@ const notyf = new Notyf({
 });
 
 // @ts-ignore
-self.MonacoEnvironment = {
+self.MonacoEnvironment = <monaco.Environment>{
   getWorkerUrl: function (moduleId, label) {
     if (label === "json") {
       return "./json.worker.bundle.js";
@@ -103,7 +105,7 @@ const erlangEditor = monaco.editor.create(
   }
 );
 
-async function bundle(files) {
+async function bundle(files: Record<string, string>): Promise<string> {
   const inputOptions = {
     input: {
       main: "gleam-packages/gleam-wasm/main.js",
@@ -123,12 +125,14 @@ async function bundle(files) {
   return output[0].code;
 }
 
+const logger = new HTMLLogger(document.getElementById("eval-output"));
+
 async function compile() {
   const gleam_input = gleamEditor.getValue();
 
   localStorage.setItem("gleam-source", gleam_input);
 
-  let files;
+  let files: { Ok?: Record<string, string>; Err?: string };
   if (target == TargetLanguage.JavaScript) {
     files = (await gleamWasm).compile_to_js(gleam_input);
   } else {
@@ -150,25 +154,42 @@ async function compile() {
       bundle(files.Ok).then((bundled) => {
         const evalResult = eval(bundled);
 
+        logger.clear();
+        logger.mountGlobally();
+
         if (
           evalResult != undefined &&
           Object.prototype.hasOwnProperty.call(evalResult, "main")
         ) {
-          document.getElementById("eval-output").textContent =
-            evalResult.main();
+          try {
+            logger.log(evalResult.main());
+          } catch (e) {
+            if (e.gleam_error) {
+              logger.error(
+                `Error: ${e.gleam_error}\n  module: ${e.module}\n  line:`,
+                e.line,
+                `\n  fn: ${e.fn}\n  value:`,
+                e.value
+              );
+            } else {
+              logger.error(e);
+            }
+          }
         } else {
-          document.getElementById("eval-output").textContent =
-            "Main function not found. It is defined and public?";
+          logger.log("Main function not found. It is defined and public?");
         }
+        logger.unmountGlobally();
       });
     } else {
       erlangEditor.setValue(files.Ok["build/dev/erlang/gleam-wasm/main.erl"]);
 
-      document.getElementById("eval-output").textContent =
-        "Compiled successfully!\n\nNote that the Erlang target is not executable in the browser.";
+      logger.log(
+        "Compiled successfully!\n\nNote that the Erlang target is not executable in the browser."
+      );
     }
   } else {
-    document.getElementById("eval-output").textContent = files.Err;
+    logger.clear();
+    logger.error(files.Err);
   }
 }
 
