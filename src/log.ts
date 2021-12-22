@@ -1,7 +1,7 @@
 /* eslint @typescript-eslint/ban-types: "off", @typescript-eslint/no-explicit-any: "off" */
 import { H, h, frag, styled } from "./virtualdom";
 
-export class HtmlLogger {
+export class HTMLLogger {
   private counts = {};
   private timers = {};
   private activeGroup: HTMLElement;

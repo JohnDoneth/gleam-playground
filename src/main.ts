@@ -4,12 +4,13 @@ import * as gleamWasm from "gleam-wasm";
 import { Notyf } from "notyf";
 import { registerGleam } from "./gleam";
 import * as monaco from "monaco-editor";
-import { HtmlLogger } from "./log";
+import { HTMLLogger } from "./log";
 import {
   decompressFromBase64 as LZString_decompressFromBase64,
   compressToBase64 as LZString_compressToBase64,
 } from "lz-string";
 import "./index.css";
+import "./logging.css";
 import "notyf/notyf.min.css";
 
 // Create an instance of Notyf
@@ -124,7 +125,7 @@ async function bundle(files: Record<string, string>): Promise<string> {
   return output[0].code;
 }
 
-const logger = new HtmlLogger(document.getElementById("eval-output"));
+const logger = new HTMLLogger(document.getElementById("eval-output"));
 
 async function compile() {
   const gleam_input = gleamEditor.getValue();
