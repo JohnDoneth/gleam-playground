@@ -223,7 +223,34 @@ body,
   gap: 5px;
   padding-top: 5px;
   padding-bottom: 5px;
-  grid-template: "1 2 3" / 3fr 5fr 3fr;
+  grid-template: "compile target share" / 3fr 5fr 3fr;
+}
+
+#compile {
+  grid-area: compile;
+}
+
+#target-language-toggle {
+  grid-area: target;
+}
+
+#share {
+  grid-area: share;
+}
+
+@media (max-width: 1000px) {
+  .button-cluster {
+    grid-template:
+      "compile share"
+      "target target" / 1fr 1fr;
+  }
+
+  #target-language-toggle {
+    display: grid;
+    grid-row: 2 / 3;
+    grid-column: 1 / 3;
+    grid-template-columns: subgrid;
+  }
 }
 
 .btn-group button.active {
