@@ -2,8 +2,8 @@
 import { H, h, frag, styled } from "./virtualdom";
 
 export class HTMLLogger {
-  private counts = {};
-  private timers = {};
+  private counts: Record<string, number> = {};
+  private timers: Record<string, number> = {};
   private activeGroup: HTMLElement;
 
   constructor(private element: HTMLElement) {
@@ -12,13 +12,21 @@ export class HTMLLogger {
   }
 
   mountGlobally() {
-    consoleFields.forEach(
-      (field) => (console[field] = (...args: any[]) => this[field](...args))
-    );
+    consoleFields.forEach((field) => {
+      console[field] = (...args: any[]) => this[field](...args);
+    });
   }
 
   unmountGlobally() {
     consoleFields.forEach((field) => (console[field] = browserConsole[field]));
+  }
+
+  get showGleamSyntax(): boolean {
+    return showGleamSyntax;
+  }
+
+  set showGleamSyntax(value: boolean) {
+    showGleamSyntax = value;
   }
 
   private logAtLogLevel(logLevel: string, args: any[]) {
@@ -106,7 +114,10 @@ export class HTMLLogger {
   }
 
   groupEnd() {
-    if (this.activeGroup !== this.element) {
+    if (
+      this.activeGroup !== this.element &&
+      this.activeGroup.parentElement != null
+    ) {
       this.activeGroup = this.activeGroup.parentElement;
     }
 
@@ -164,7 +175,7 @@ export class HTMLLogger {
   trace(...args: any[]) {
     try {
       throw new Error();
-    } catch (e) {
+    } catch (e: any) {
       if (args.length) {
         this.logAtLogLevel("trace", args);
       }
@@ -184,6 +195,14 @@ export class HTMLLogger {
 
 type Context = "normal" | "field" | "tree-val";
 
+type GleamList<T> = Object | NonEmpty<T>;
+interface NonEmpty<T> {
+  head: T;
+  tail: GleamList<T>;
+}
+
+let showGleamSyntax = true;
+
 const primitives = {
   string(arg: string, context: Context): Node | string {
     if (context === "normal") return arg;
@@ -193,15 +212,13 @@ const primitives = {
         "str",
         frag(
           json.substr(0, 170),
-          h(
-            {
-              tag: "a",
-              className: "clear",
-              attributes: { href: "javascript:void()" },
-              on: { click: () => void (elem.textContent = json) },
-            },
-            "..."
-          ),
+          h({
+            tag: "a",
+            className: "clear",
+            attributes: { href: "javascript:void()" },
+            on: { click: () => void (elem.textContent = json) },
+            children: "...",
+          }),
           json.substr(json.length - 25)
         )
       );
@@ -220,9 +237,11 @@ const primitives = {
     return styled("sym", `Symbol(${arg.description})`);
   },
   undefined(_: undefined, _context: Context): Node {
+    if (showGleamSyntax) return styled("undef", "Nil");
     return styled("undef", "undefined");
   },
   boolean(arg: boolean, _context: Context): Node {
+    if (showGleamSyntax) return styled("bool", arg ? "True" : "False");
     return styled("bool", "" + arg);
   },
   function(arg: Function, context: Context): Node | string {
@@ -247,13 +266,32 @@ const primitives = {
     }
 
     if (arg instanceof Array) {
-      return objects.Array(arg, context);
+      const fn = showGleamSyntax ? objects.GleamTuple : objects.Array;
+      return fn(arg, context);
     } else if (arg instanceof Element) {
       return objects.Element(arg, context);
     } else if (arg instanceof Error) {
       return objects.Error(arg, context);
     } else if (arg instanceof Promise) {
       return objects.Promise(arg, context);
+    }
+
+    if (showGleamSyntax) {
+      if ("__gleam_prelude_variant__" in arg) {
+        if (constructor === "Empty" || constructor === "NonEmpty") {
+          return objects.GleamList(arg, context);
+        } else {
+          return objects.GleamCustomType(arg, context);
+        }
+      }
+
+      const proto = Object.getPrototypeOf(arg);
+      if (proto != null) {
+        const proto2 = Object.getPrototypeOf(proto);
+        if (proto2 != null && proto2.constructor.name === "CustomType") {
+          return objects.GleamCustomType(arg, context);
+        }
+      }
     }
 
     if (context === "field") return styled("tag", constructor);
@@ -275,6 +313,83 @@ const primitives = {
 };
 
 const objects = {
+  GleamCustomType(arg: Object, context: Context): Node | string {
+    const name = arg.constructor.name;
+    if (context === "field") return frag(styled("tag", name), "(…)");
+
+    let entries = Object.entries(arg);
+    const limit = context === "normal" ? 9 : context === "tree-val" ? 3 : 0;
+    let completed = true;
+    if (entries.length > limit) {
+      entries = entries.slice(0, limit);
+      completed = false;
+    }
+
+    const arr: (Node | string | H)[] = [];
+    let i = 0;
+    for (const [k, v] of entries) {
+      const nextContext = entries.length === 1 ? "tree-val" : "field";
+      if (+k == i) {
+        arr.push(format(v, nextContext), ", ");
+        i++;
+      } else {
+        arr.push(formatField(k), ": ", format(v, nextContext), ", ");
+      }
+    }
+    if (!completed) arr.push(styled("clear", "…"));
+    else if (arr.length) arr.pop();
+
+    return expandIfNormal(
+      context,
+      arg,
+      arr.length === 0
+        ? styled("tag", name)
+        : frag(styled("tag", name), "(", ...arr, ")")
+    );
+  },
+
+  GleamList(arg: GleamList<any>, context: Context): Node | string {
+    const frags = [];
+    let head = arg;
+    const limit = context === "normal" ? 40 : context === "tree-val" ? 10 : 0;
+    let omitted = false;
+
+    while ("head" in head) {
+      if (frags.length === limit) {
+        omitted = true;
+        break;
+      }
+      frags.push(format(head.head, "field"));
+      frags.push(", ");
+      head = head.tail;
+    }
+
+    if (omitted) {
+      return expandIfNormal(
+        context,
+        arg,
+        frag("[", ...frags, styled("clear", `…`), "]")
+      );
+    } else {
+      if (frags.length > 0) frags.pop();
+      return expandIfNormal(context, arg, frag("[", ...frags, "]"));
+    }
+  },
+
+  GleamTuple(arg: Array<any>, context: Context): Node | string {
+    if (context === "field") {
+      return frag("#(", styled("clear", `…${arg.length} items`), ")");
+    }
+
+    const shown = context === "normal" ? 40 : 10;
+    const arr = arg.slice(0, shown).flatMap((v) => [format(v, "field"), ", "]);
+    if (arr.length) arr.pop();
+    if (shown < arg.length) {
+      arr.push(styled("clear", ` …${arg.length - shown} more items`));
+    }
+    return expandIfNormal(context, arg, frag("#(", ...arr, ")"));
+  },
+
   Object(arg: Object, context: Context): Node | string {
     if (context === "field") return "{…}";
 
@@ -409,7 +524,7 @@ const objects = {
       frag(
         styled("tag", name),
         " ",
-        h({ tag: "button", on: { click } }, "await")
+        h({ tag: "button", on: { click }, children: "await" })
       )
     );
   },
@@ -477,7 +592,7 @@ const objConstructor = Object.getPrototypeOf({});
 
 function openObject(obj: object): Node {
   if (typeof obj === "function") {
-    return h({ className: "object" }, obj.toString());
+    return h({ className: "object", children: obj.toString() });
   } else {
     const entryNodes: Node[] = [];
     enumerateSafe(obj, (k, v) => {
@@ -487,7 +602,7 @@ function openObject(obj: object): Node {
         );
       } else {
         entryNodes.push(
-          h({}, frag(formatField(k), ": ", format(v, "tree-val")))
+          h({ children: frag(formatField(k), ": ", format(v, "tree-val")) })
         );
       }
     });
@@ -496,22 +611,29 @@ function openObject(obj: object): Node {
       entryNodes.push(
         expandable(
           proto,
-          frag(styled("clear", "[[Prototype]]"), ": ", format(proto, "field"))
+          frag(
+            styled("clear", "[[Prototype]]"),
+            ": ",
+            styled("tag", proto.constructor.name)
+          )
         )
       );
     }
 
-    return h({ className: "object" }, frag(...entryNodes));
+    return h({ className: "object", children: frag(...entryNodes) });
   }
 }
 
-function enumerateSafe(
-  obj: object,
-  forEach: (k: string, v: any) => void,
+function enumerateSafe<T extends object>(
+  obj: T,
+  forEach: (k: keyof T, v: any) => void,
   limit = -1
 ): boolean {
+  type Key = keyof T;
+  type Descriptors = Record<Key, PropertyDescriptor>;
+
   let count = 0;
-  const ownKeys = Object.getOwnPropertyNames(obj);
+  const ownKeys = Object.getOwnPropertyNames(obj) as Key[];
   for (const key of ownKeys) {
     let value: any;
     try {
@@ -528,15 +650,15 @@ function enumerateSafe(
 
   let proto = Object.getPrototypeOf(obj);
   while (proto != null && proto !== objConstructor) {
-    const descriptors = Object.getOwnPropertyDescriptors(proto);
+    const descriptors = Object.getOwnPropertyDescriptors(proto) as Descriptors;
     for (const key in descriptors) {
       const desc = descriptors[key];
       if (desc.get && desc.enumerable) {
         let value: any;
         try {
           value = obj[key];
-        } catch (e) {
-          value = e;
+        } catch (ex) {
+          value = ex;
         }
         forEach(key, value);
         if (limit !== -1) {
@@ -555,7 +677,7 @@ function expandable(
   titleClosed: string | Node,
   titleOpen?: string | Node
 ): HTMLElement {
-  const titleNode = h({}, titleClosed);
+  const titleNode = h({ children: titleClosed });
 
   const bodyNode = h({});
   const arrow = arrowButton(true, (closed, _) => {
@@ -577,7 +699,10 @@ function expandable(
     }
   });
 
-  const elem = h({ className: "expand" }, frag(arrow, titleNode, bodyNode));
+  const elem = h({
+    className: "expand",
+    children: frag(arrow, titleNode, bodyNode),
+  });
   return elem;
 }
 
