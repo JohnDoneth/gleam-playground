@@ -1,7 +1,7 @@
 /*
   @license
-	Rollup.js v2.60.1
-	Mon, 22 Nov 2021 07:50:11 GMT - commit 649074e14131b490ff9dfe26e94632ff458c4970
+	Rollup.js v2.61.1
+	Sat, 11 Dec 2021 06:17:07 GMT - commit 2e91c85fc95bc722e5a7141d7fa0acde4aab61aa
 
 
 	https://github.com/rollup/rollup
