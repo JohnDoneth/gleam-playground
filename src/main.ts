@@ -156,6 +156,7 @@ async function compile() {
 
         logger.clear();
         logger.mountGlobally();
+        logger.showGleamSyntax = true;
 
         if (
           evalResult != undefined &&
@@ -166,7 +167,7 @@ async function compile() {
           } catch (e) {
             if (e.gleam_error) {
               logger.error(
-                `Error: ${e.gleam_error}\n  module: ${e.module}\n  line:`,
+                `Error: ${e.message}\n  module: ${e.module}\n  line:`,
                 e.line,
                 `\n  fn: ${e.fn}\n  value:`,
                 e.value

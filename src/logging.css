@@ -16,16 +16,16 @@
 }
 
 .log-container .group-header {
-  color: #333;
+  color: #000c;
   font-weight: bold;
 }
 
 .log-container [data-log-level="clear"] {
-  color: #aaa;
+  color: #0005;
 }
 
 .log-container [data-log-level="trace"] {
-  color: #555;
+  color: #000a;
 }
 
 .log-container [data-log-level="warn"] {
@@ -60,11 +60,11 @@
 }
 
 .log-container .undef {
-  color: #777;
+  color: #0008;
 }
 
 .log-container .clear {
-  color: #888;
+  color: #0007;
   font-style: italic;
 }
 
@@ -89,7 +89,7 @@
 .log-container [data-log-level] .object {
   display: inline-flex;
   flex-direction: column;
-  border-left: 2px solid #ccc;
+  border-left: 2px solid #0004;
   padding: 0 5px 0 25px;
 }
 

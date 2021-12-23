@@ -4,7 +4,7 @@ export interface H {
   id?: string;
   attributes?: Record<string, string>;
   on?: Record<string, (e: Event) => boolean | void>;
-  children?: Node;
+  children?: Node | string;
 }
 
 export function frag(...items: (string | Node | H)[]): Node {
@@ -29,7 +29,7 @@ export function frag(...items: (string | Node | H)[]): Node {
   }
 }
 
-export function h(item: H, children?: Node | string): HTMLElement {
+export function h(item: H): HTMLElement {
   const el = document.createElement(item.tag ?? "div");
   if (item.className != null) el.className = item.className;
   if (item.id != null) el.id = item.id;
@@ -46,12 +46,9 @@ export function h(item: H, children?: Node | string): HTMLElement {
   if (item.children != null) {
     el.append(item.children);
   }
-  if (children != null) {
-    el.append(children);
-  }
   return el;
 }
 
 export function styled(cls: string, children: Node | string): Node {
-  return h({ tag: "i", className: cls }, children);
+  return h({ tag: "i", className: cls, children });
 }

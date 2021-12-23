@@ -18,6 +18,7 @@ textarea,
   margin-right: 10px;
   margin-bottom: 10px;
   user-select: initial;
+  width: calc(100% - 22px); /* subtract margin and border */
   height: auto !important;
   display: block;
   min-height: 20em;
@@ -134,6 +135,16 @@ body,
   height: calc(100vh - 61px);
 }
 
+/*
+  This ancient magic incantation makes the editors grow and shrink when the browser window
+  is resized or zoomed. 
+
+  See <https://github.com/microsoft/monaco-editor/issues/1482>
+*/
+.monaco-editor {
+  position: absolute;
+}
+
 @media (min-width: 800px) and (min-resolution: 1dppx) {
   .content {
     flex-direction: row;
@@ -212,6 +223,7 @@ body,
   gap: 5px;
   padding-top: 5px;
   padding-bottom: 5px;
+  grid-template: "1 2 3" / 3fr 5fr 3fr;
 }
 
 .btn-group button.active {
