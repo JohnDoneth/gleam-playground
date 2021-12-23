@@ -184,6 +184,7 @@ async function compile() {
     } else {
       erlangEditor.setValue(files.Ok["build/dev/erlang/gleam-wasm/main.erl"]);
 
+      logger.clear();
       logger.log(
         "Compiled successfully!\n\nNote that the Erlang target is not executable in the browser."
       );
@@ -209,18 +210,26 @@ document.getElementById("share").addEventListener("click", async (_event) => {
   notyf.success("Link copied to clipboard!");
 });
 
-document
-  .getElementById("target-erlang")
-  .addEventListener("click", async (_event) => {
-    target = TargetLanguage.Erlang;
-    document.getElementById("target-erlang").classList.toggle("active");
-    document.getElementById("target-javascript").classList.toggle("active");
+document.querySelectorAll(".toggle-button").forEach((elem) => {
+  elem.addEventListener("click", async (event) => {
+    const elem = event.currentTarget as HTMLInputElement;
+    if (elem.id === "target-javascript") {
+      target = TargetLanguage.JavaScript;
+    } else if (elem.id === "target-erlang") {
+      target = TargetLanguage.Erlang;
+    }
 
-    document.getElementById("target-erlang").setAttribute("disabled", "");
-    document.getElementById("target-javascript").removeAttribute("disabled");
+    document.getElementById("target-javascript").classList.toggle("active");
+    document.getElementById("target-erlang").classList.toggle("active");
+
+    (<HTMLInputElement>document.getElementById("target-javascript")).disabled =
+      !document.getElementById("target-javascript");
+    (<HTMLInputElement>document.getElementById("target-erlang")).disabled =
+      !document.getElementById("target-erlang");
 
     targetChanged();
   });
+});
 
 function targetChanged() {
   document.getElementById("javascript-output").classList.toggle("hidden");
@@ -232,5 +241,6 @@ function targetChanged() {
     document.querySelector("#compile nobr").textContent = "Build";
   }
 
-  document.getElementById("eval-output").textContent = "";
+  document.getElementById("eval-output").innerHTML =
+    '<div data-log-level="clear" class="placeholder">Output…</div>';
 }
