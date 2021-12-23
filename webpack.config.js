@@ -30,10 +30,10 @@ module.exports = {
       {
         test: /\.css$/i,
         use: [
-					MiniCssExtractPlugin.loader,
-					"css-loader",
-					"postcss-loader"
-				],
+          MiniCssExtractPlugin.loader,
+          "css-loader",
+          "postcss-loader"
+        ],
       },
       {
         test: /\.(png|ttf)$/,
