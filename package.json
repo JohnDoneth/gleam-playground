@@ -29,6 +29,7 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.8.0",
     "@typescript-eslint/parser": "^5.8.0",
+    "autoprefixer": "^10.4.0",
     "copy-webpack-plugin": "^10.0.0",
     "css-loader": "^5.0.0",
     "eslint": "^8.5.0",
@@ -36,6 +37,9 @@
     "html-webpack-plugin": "^5.5.0",
     "mini-css-extract-plugin": "^2.4.5",
     "path-browserify": "^1.0.1",
+    "postcss": "^8.4.5",
+    "postcss-import": "^14.0.2",
+    "postcss-loader": "^6.2.1",
     "prettier": "^2.5.1",
     "stylelint": "^14.1.0",
     "stylelint-config-prettier": "^9.0.3",
