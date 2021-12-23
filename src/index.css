@@ -21,6 +21,13 @@ textarea,
   height: auto !important;
   display: block;
   min-height: 20em;
+  font-family: monospace;
+}
+
+.editor .placeholder {
+  padding: 1px 8px;
+  color: #0005;
+  font-size: 13.5px;
 }
 
 h1,
@@ -178,7 +185,7 @@ body,
 .actions-header {
   display: flex;
   justify-content: space-between;
-  align-items: end;
+  align-items: flex-end;
   padding-right: 10px;
   min-height: 4em;
 }
