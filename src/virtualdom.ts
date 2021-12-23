@@ -49,6 +49,13 @@ export function h(item: H): HTMLElement {
   return el;
 }
 
-export function styled(cls: string, children: Node | string): Node {
+export function styled(cls: string, children: Node | string): Element {
   return h({ tag: "i", className: cls, children });
+}
+
+export function button(
+  content: Node | string,
+  action: (e: MouseEvent) => void
+): Element {
+  return h({ tag: "button", on: { click: action }, children: content });
 }

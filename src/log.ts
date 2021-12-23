@@ -1,5 +1,5 @@
 /* eslint @typescript-eslint/ban-types: "off", @typescript-eslint/no-explicit-any: "off" */
-import { H, h, frag, styled } from "./virtualdom";
+import { H, h, frag, styled, button } from "./virtualdom";
 
 export class HTMLLogger {
   private counts: Record<string, number> = {};
@@ -261,27 +261,29 @@ const primitives = {
 
     const constructor = arg.constructor.name;
 
-    if (constructor in objects && arg instanceof window[constructor]) {
-      return objects[constructor](arg, context);
+    if (constructor in jsObjects && arg instanceof window[constructor]) {
+      return jsObjects[constructor](arg, context);
     }
 
     if (arg instanceof Array) {
-      const fn = showGleamSyntax ? objects.GleamTuple : objects.Array;
+      const fn = showGleamSyntax ? gleamObjects.Tuple : jsObjects.Array;
       return fn(arg, context);
     } else if (arg instanceof Element) {
-      return objects.Element(arg, context);
+      return jsObjects.Element(arg, context);
     } else if (arg instanceof Error) {
-      return objects.Error(arg, context);
+      return jsObjects.Error(arg, context);
     } else if (arg instanceof Promise) {
-      return objects.Promise(arg, context);
+      return jsObjects.Promise(arg, context);
     }
 
     if (showGleamSyntax) {
       if ("__gleam_prelude_variant__" in arg) {
         if (constructor === "Empty" || constructor === "NonEmpty") {
-          return objects.GleamList(arg, context);
+          return gleamObjects.List(arg, context);
+        } else if (constructor === "BitString") {
+          return gleamObjects.BitString(arg as any, context);
         } else {
-          return objects.GleamCustomType(arg, context);
+          return gleamObjects.CustomType(arg, context);
         }
       }
 
@@ -289,7 +291,7 @@ const primitives = {
       if (proto != null) {
         const proto2 = Object.getPrototypeOf(proto);
         if (proto2 != null && proto2.constructor.name === "CustomType") {
-          return objects.GleamCustomType(arg, context);
+          return gleamObjects.CustomType(arg, context);
         }
       }
     }
@@ -312,8 +314,8 @@ const primitives = {
   },
 };
 
-const objects = {
-  GleamCustomType(arg: Object, context: Context): Node | string {
+const gleamObjects = {
+  CustomType(arg: Object, context: Context): Node | string {
     const name = arg.constructor.name;
     if (context === "field") return frag(styled("tag", name), "(…)");
 
@@ -348,7 +350,7 @@ const objects = {
     );
   },
 
-  GleamList(arg: GleamList<any>, context: Context): Node | string {
+  List(arg: GleamList<any>, context: Context): Node | string {
     const frags = [];
     let head = arg;
     const limit = context === "normal" ? 40 : context === "tree-val" ? 10 : 0;
@@ -376,7 +378,7 @@ const objects = {
     }
   },
 
-  GleamTuple(arg: Array<any>, context: Context): Node | string {
+  Tuple(arg: Array<any>, context: Context): Node | string {
     if (context === "field") {
       return frag("#(", styled("clear", `…${arg.length} items`), ")");
     }
@@ -390,6 +392,48 @@ const objects = {
     return expandIfNormal(context, arg, frag("#(", ...arr, ")"));
   },
 
+  BitString(arg: { buffer: Uint8Array }, context: Context): Node | string {
+    const buffer = arg.buffer;
+    if (context === "field" && buffer.length > 4) {
+      return frag("<<", styled("clear", `…${buffer.length} bytes`), ">>");
+    }
+
+    const toString = () => {
+      const string = new TextDecoder().decode(arg.buffer);
+
+      el.innerHTML = "";
+      el.append(
+        "<<",
+        format(string, context === "normal" ? "tree-val" : context),
+        ">> ",
+        button("to bytes", toBytes)
+      );
+    };
+
+    const toBytes = () => {
+      el.innerHTML = "";
+      el.append(
+        "<<",
+        reprBytes(arg.buffer, 20),
+        ">> ",
+        button("to string", toString)
+      );
+    };
+
+    const el = h({
+      children: frag(
+        "<<",
+        reprBytes(arg.buffer, 20),
+        ">> ",
+        button("to string", toString)
+      ),
+    });
+
+    return expandIfNormal(context, arg, el);
+  },
+};
+
+const jsObjects = {
   Object(arg: Object, context: Context): Node | string {
     if (context === "field") return "{…}";
 
@@ -488,6 +532,16 @@ const objects = {
       )
     );
   },
+  Uint8Array(arg: Uint8Array, context: Context): Node | string {
+    const name = arg.constructor.name;
+    if (context === "field") return styled("tag", name);
+
+    return expandIfNormal(
+      context,
+      arg,
+      frag(styled("tag", name), " ", reprBytes(arg, 20))
+    );
+  },
   Window(arg: Window, context: Context): Node | string {
     const name = arg.constructor.name;
     if (context === "field") return styled("tag", name);
@@ -521,11 +575,7 @@ const objects = {
     return expandIfNormal(
       context,
       arg,
-      frag(
-        styled("tag", name),
-        " ",
-        h({ tag: "button", on: { click }, children: "await" })
-      )
+      frag(styled("tag", name), " ", button("await", click))
     );
   },
 
@@ -554,6 +604,20 @@ const objects = {
     );
   },
 };
+
+function reprBytes(arg: Uint8Array, limit: number): Node | string {
+  const max = Math.min(limit, arg.length);
+  const repr = [];
+  for (let i = 0; i < max; i++) {
+    repr.push(arg[i].toString(16).padStart(2, "0"));
+  }
+  if (arg.length > limit) {
+    const ellipsis = styled("clear", ` …${arg.length - limit} more bytes`);
+    return frag(styled("repr", repr.join(" ")), ellipsis);
+  } else {
+    return styled("repr", repr.join(" "));
+  }
+}
 
 function format(arg: any, context: Context): Node | string {
   return primitives[typeof arg](arg, context);

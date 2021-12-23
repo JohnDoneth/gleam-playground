@@ -96,14 +96,25 @@
 /* stylelint-disable-next-line no-descending-specificity */
 .log-container button {
   border: none;
+  border-radius: 3px;
   margin: -2px 0;
-  padding: 0;
+  padding: 0 5px;
   display: inline-block;
   height: 20px;
   min-width: 20px;
   text-align: center;
   background-color: transparent;
   letter-spacing: 0.02em;
+}
+
+.log-container button:hover {
+  background-color: #f073;
+  outline: none;
+}
+
+.log-container button:focus {
+  box-shadow: inset 0 0 0 2px #f073;
+  outline: none;
 }
 
 .log-container .expand {
@@ -113,6 +124,7 @@
 .log-container button.arrow-button {
   font-size: 110%;
   margin-left: -20px;
+  padding: 0;
 }
 
 .log-container .object > .expand {
