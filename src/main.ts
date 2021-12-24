@@ -192,7 +192,9 @@ async function compile() {
         logger.unmountGlobally();
       });
     } else {
-      erlangEditor.setValue(files.Ok["build/dev/erlang/gleam-wasm/main.erl"]);
+      erlangEditor.setValue(
+        files.Ok["build/dev/erlang/gleam-wasm/build/main.erl"]
+      );
 
       logger.clear();
       logger.log(
