@@ -132,7 +132,7 @@ async function compile() {
 
   localStorage.setItem("gleam-source", gleam_input);
 
-  let files: { Ok?: Record<string, string>; Err?: string };  
+  let files: { Ok?: Record<string, string>; Err?: string };
   if (target == TargetLanguage.JavaScript) {
     files = (await gleamWasm).compile_to_js(gleam_input);
   } else {
@@ -142,18 +142,20 @@ async function compile() {
   if (files.Ok) {
     if (target == TargetLanguage.JavaScript) {
       // TODO: Remove all of the following path witchcraft.
-      files.Ok["gleam-packages/gleam_stdlib/dist/gleam.js"] = files.Ok["gleam-packages/gleam_stdlib/src/gleam.js"];
-      files.Ok["gleam-packages/gleam_stdlib/dist/gleam_stdlib.mjs"] = files.Ok["gleam-packages/gleam_stdlib/src/gleam_stdlib.mjs"];
+      files.Ok["gleam-packages/gleam_stdlib/dist/gleam.js"] =
+        files.Ok["gleam-packages/gleam_stdlib/src/gleam.js"];
+      files.Ok["gleam-packages/gleam_stdlib/dist/gleam_stdlib.mjs"] =
+        files.Ok["gleam-packages/gleam_stdlib/src/gleam_stdlib.mjs"];
 
       // prefix keys with "./" for Rollup.
-      Object.keys(files.Ok).map(function(key) {
+      Object.keys(files.Ok).map(function (key) {
         files.Ok["./" + key] = files.Ok[key];
       });
 
-      // keys for .js files in addition to .mjs. 
-      // Not yet sure why this is necessary. 
+      // keys for .js files in addition to .mjs.
+      // Not yet sure why this is necessary.
       // Incomplete port to .mjs in the compiler?
-      Object.keys(files.Ok).map(function(key) {
+      Object.keys(files.Ok).map(function (key) {
         files.Ok[key.replace(".mjs", ".js")] = files.Ok[key];
       });
 
