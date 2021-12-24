@@ -261,10 +261,6 @@ const primitives = {
 
     const constructor = arg.constructor.name;
 
-    if (constructor in jsObjects && arg instanceof window[constructor]) {
-      return jsObjects[constructor](arg, context);
-    }
-
     if (arg instanceof Array) {
       const fn = showGleamSyntax ? gleamObjects.Tuple : jsObjects.Array;
       return fn(arg, context);
@@ -274,6 +270,10 @@ const primitives = {
       return jsObjects.Error(arg, context);
     } else if (arg instanceof Promise) {
       return jsObjects.Promise(arg, context);
+    }
+
+    if (constructor in jsObjects && arg instanceof window[constructor]) {
+      return jsObjects[constructor](arg, context);
     }
 
     if (showGleamSyntax) {
