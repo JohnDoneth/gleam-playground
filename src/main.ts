@@ -108,7 +108,7 @@ const erlangEditor = monaco.editor.create(
 async function bundle(files: Record<string, string>): Promise<string> {
   const inputOptions = {
     input: {
-      main: "gleam-packages/gleam-wasm/main.js",
+      main: "gleam-packages/gleam-wasm/dist/main.mjs",
     },
     plugins: [
       hypothetical({
@@ -141,15 +141,25 @@ async function compile() {
 
   if (files.Ok) {
     if (target == TargetLanguage.JavaScript) {
-      jsEditor.setValue(files.Ok["gleam-packages/gleam-wasm/main.js"]);
+      // TODO: Remove all of the following path witchcraft.
+      files.Ok["gleam-packages/gleam_stdlib/dist/gleam.js"] =
+        files.Ok["gleam-packages/gleam_stdlib/src/gleam.js"];
+      files.Ok["gleam-packages/gleam_stdlib/dist/gleam_stdlib.mjs"] =
+        files.Ok["gleam-packages/gleam_stdlib/src/gleam_stdlib.mjs"];
 
-      // TODO: remove these hardcoded paths.
-      files.Ok["./gleam-packages/gleam-wasm/main.js"] =
-        files.Ok["gleam-packages/gleam-wasm/main.js"];
-      files.Ok["./gleam-packages/gleam-wasm/gleam.js"] =
-        files.Ok["gleam-packages/gleam-wasm/gleam.js"];
-      files.Ok["gleam-packages/gleam_stdlib/gleam_stdlib.js"] =
-        files.Ok["build/packages/gleam_stdlib/src/gleam_stdlib.js"];
+      // prefix keys with "./" for Rollup.
+      Object.keys(files.Ok).map(function (key) {
+        files.Ok["./" + key] = files.Ok[key];
+      });
+
+      // keys for .js files in addition to .mjs.
+      // Not yet sure why this is necessary.
+      // Incomplete port to .mjs in the compiler?
+      Object.keys(files.Ok).map(function (key) {
+        files.Ok[key.replace(".mjs", ".js")] = files.Ok[key];
+      });
+
+      jsEditor.setValue(files.Ok["./gleam-packages/gleam-wasm/dist/main.mjs"]);
 
       bundle(files.Ok).then((bundled) => {
         const evalResult = eval(bundled);
@@ -182,7 +192,9 @@ async function compile() {
         logger.unmountGlobally();
       });
     } else {
-      erlangEditor.setValue(files.Ok["build/dev/erlang/gleam-wasm/main.erl"]);
+      erlangEditor.setValue(
+        files.Ok["build/dev/erlang/gleam-wasm/build/main.erl"]
+      );
 
       logger.clear();
       logger.log(
