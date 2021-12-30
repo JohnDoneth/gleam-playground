@@ -47,6 +47,9 @@ module.exports = {
     fallback: { path: require.resolve("path-browserify") },
     preferRelative: true,
     extensions: [".ts", ".js"],
+    alias: {
+      "@gleam-wasm": path.resolve(__dirname, "/gleam-wasm"),
+    },
   },
   devServer: {
     static: {

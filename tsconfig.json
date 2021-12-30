@@ -5,7 +5,10 @@
     "sourceMap": true,
     "target": "ES2017",
     "module": "ES2020",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "paths": {
+      "@gleam-wasm": ["./gleam-wasm"],
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "**/*.spec.ts", "src/libs"]

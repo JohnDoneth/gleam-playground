@@ -1,6 +1,6 @@
 import { ModuleFormat, OutputOptions, rollup } from "rollup";
 import * as hypothetical from "rollup-plugin-hypothetical";
-import * as gleamWasmImport from "gleam-wasm";
+import * as gleamWasmImport from "@gleam-wasm";
 import { Notyf } from "notyf";
 import { registerGleam } from "./gleam";
 import * as monaco from "monaco-editor";
