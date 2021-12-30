@@ -1,6 +1,6 @@
 import { ModuleFormat, OutputOptions, rollup } from "rollup";
 import * as hypothetical from "rollup-plugin-hypothetical";
-import * as gleamWasm from "gleam-wasm";
+import * as gleamWasmImport from "gleam-wasm";
 import { Notyf } from "notyf";
 import { registerGleam } from "./gleam";
 import * as monaco from "monaco-editor";
@@ -12,6 +12,8 @@ import {
 import "./index.css";
 import "./logging.css";
 import "notyf/notyf.min.css";
+import "@codemirror/lang-javascript";
+import { stdlibFiles } from "./stdlib";
 
 // Create an instance of Notyf
 const notyf = new Notyf({
@@ -48,8 +50,6 @@ self.MonacoEnvironment = <monaco.Environment>{
   },
 };
 
-registerGleam(monaco);
-
 const initialSource = `import gleam/io
 
 pub fn main() {
@@ -60,6 +60,11 @@ pub fn main() {
 enum TargetLanguage {
   JavaScript,
   Erlang,
+}
+
+function targetToString(target: TargetLanguage) {
+  if (target == TargetLanguage.JavaScript) return "javascript";
+  if (target == TargetLanguage.Erlang) return "erlang";
 }
 
 let target = TargetLanguage.JavaScript;
@@ -127,41 +132,56 @@ async function bundle(files: Record<string, string>): Promise<string> {
 
 const logger = new HTMLLogger(document.getElementById("eval-output"));
 
-async function compile() {
+async function compile(gleamWasm, stdlib) {
   const gleam_input = gleamEditor.getValue();
 
   localStorage.setItem("gleam-source", gleam_input);
 
-  let files: { Ok?: Record<string, string>; Err?: string };
-  if (target == TargetLanguage.JavaScript) {
-    files = (await gleamWasm).compile_to_js(gleam_input);
-  } else {
-    files = (await gleamWasm).compile_to_erlang(gleam_input);
-  }
+  const sourceFiles = Object.assign(
+    {
+      "./src/main.gleam": gleam_input,
+      "build/packages/gleam_stdlib/gleam.toml": 'name = "gleam_stdlib"',
+    },
+    stdlib
+  );
+
+  gleamWasm.init(false);
+
+  const files: { Ok?: Record<string, string>; Err?: string } =
+    gleamWasm.compile({
+      target: targetToString(target),
+      sourceFiles: sourceFiles,
+      dependencies: ["gleam_stdlib"],
+      mode: "Dev",
+    });
 
   if (files.Ok) {
     if (target == TargetLanguage.JavaScript) {
-      // TODO: Remove all of the following path witchcraft.
-      files.Ok["gleam-packages/gleam_stdlib/dist/gleam.js"] =
-        files.Ok["gleam-packages/gleam_stdlib/src/gleam.js"];
-      files.Ok["gleam-packages/gleam_stdlib/dist/gleam_stdlib.mjs"] =
-        files.Ok["gleam-packages/gleam_stdlib/src/gleam_stdlib.mjs"];
+      // - Prefix keys with "./" for Rollup as it does relative lookups.
+      // - Files need to be in the gleam-packages directory for Rollup to resolve
+      //   the paths correctly.
+      const processedFiles = Object.keys(files.Ok).reduce(function (acc, key) {
+        const newKey =
+          "./" +
+          key
+            .replace("build/dev/javascript", "gleam-packages")
+            .replace("build/packages", "gleam-packages");
 
-      // prefix keys with "./" for Rollup.
-      Object.keys(files.Ok).map(function (key) {
-        files.Ok["./" + key] = files.Ok[key];
-      });
+        acc[newKey] = files.Ok[key];
+        return acc;
+      }, {});
 
-      // keys for .js files in addition to .mjs.
-      // Not yet sure why this is necessary.
-      // Incomplete port to .mjs in the compiler?
-      Object.keys(files.Ok).map(function (key) {
-        files.Ok[key.replace(".mjs", ".js")] = files.Ok[key];
-      });
+      // TODO: Remove the following 'src' to 'dist' path witchcraft.
+      processedFiles["./gleam-packages/gleam_stdlib/dist/gleam_stdlib.mjs"] =
+        processedFiles[
+          "./gleam-packages/gleam_stdlib/src/gleam/gleam_stdlib.mjs"
+        ];
 
-      jsEditor.setValue(files.Ok["./gleam-packages/gleam-wasm/dist/main.mjs"]);
+      jsEditor.setValue(
+        processedFiles["./gleam-packages/gleam-wasm/dist/main.mjs"]
+      );
 
-      bundle(files.Ok).then((bundled) => {
+      bundle(processedFiles).then((bundled) => {
         const evalResult = eval(bundled);
 
         logger.clear();
@@ -207,9 +227,18 @@ async function compile() {
   }
 }
 
-document.getElementById("compile").addEventListener("click", (_event) => {
-  compile();
-});
+async function init() {
+  registerGleam(monaco);
+
+  const compileButton = document.getElementById("compile") as HTMLButtonElement;
+  const stdlib = await stdlibFiles();
+  const gleamWasm = await gleamWasmImport;
+
+  compileButton.disabled = false;
+  compileButton.addEventListener("click", (_event) => {
+    compile(gleamWasm, stdlib);
+  });
+}
 
 document.getElementById("share").addEventListener("click", async (_event) => {
   const base64source = LZString_compressToBase64(gleamEditor.getValue());
@@ -256,3 +285,5 @@ function targetChanged() {
   document.getElementById("eval-output").innerHTML =
     '<div data-log-level="clear" class="placeholder">Output…</div>';
 }
+
+init();

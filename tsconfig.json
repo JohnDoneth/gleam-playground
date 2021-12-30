@@ -4,8 +4,9 @@
     "preserveConstEnums": true,
     "sourceMap": true,
     "target": "ES2017",
-    "moduleResolution": "Node"
+    "module": "ES2020",
+    "moduleResolution": "node"
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "libs"],
   "exclude": ["node_modules", "**/*.spec.ts"]
 }
