@@ -4,15 +4,14 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CopyPlugin = require("copy-webpack-plugin");
+const CompressionPlugin = require("compression-webpack-plugin");
+const webpack = require("webpack");
 
 module.exports = {
   mode: "development",
   entry: {
     app: "./src/index.ts",
     "editor.worker": "monaco-editor/esm/vs/editor/editor.worker.js",
-    "json.worker": "monaco-editor/esm/vs/language/json/json.worker",
-    "css.worker": "monaco-editor/esm/vs/language/css/css.worker",
-    "html.worker": "monaco-editor/esm/vs/language/html/html.worker",
     "ts.worker": "monaco-editor/esm/vs/language/typescript/ts.worker",
   },
   output: {
@@ -63,5 +62,12 @@ module.exports = {
       patterns: [{ from: "static", to: "." }],
     }),
     new MiniCssExtractPlugin(),
+    new CompressionPlugin(),
+    new webpack.optimize.MinChunkSizePlugin({
+      minChunkSize: 10000,
+    }),
+    new webpack.optimize.LimitChunkCountPlugin({
+      maxChunks: 10,
+    }),
   ],
 };

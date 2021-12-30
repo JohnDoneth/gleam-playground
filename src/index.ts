@@ -34,15 +34,6 @@ const notyf = new Notyf({
 // @ts-ignore
 self.MonacoEnvironment = <monaco.Environment>{
   getWorkerUrl: function (moduleId, label) {
-    if (label === "json") {
-      return "./json.worker.bundle.js";
-    }
-    if (label === "css" || label === "scss" || label === "less") {
-      return "./css.worker.bundle.js";
-    }
-    if (label === "html" || label === "handlebars" || label === "razor") {
-      return "./html.worker.bundle.js";
-    }
     if (label === "typescript" || label === "javascript") {
       return "./ts.worker.bundle.js";
     }
@@ -145,8 +136,6 @@ async function compile(gleamWasm, stdlib) {
     stdlib
   );
 
-  gleamWasm.init(false);
-
   const files: { Ok?: Record<string, string>; Err?: string } =
     gleamWasm.compile({
       target: targetToString(target),
@@ -233,6 +222,8 @@ async function init() {
   const compileButton = document.getElementById("compile") as HTMLButtonElement;
   const stdlib = await stdlibFiles();
   const gleamWasm = await gleamWasmImport;
+
+  gleamWasm.init(false); // debug: false
 
   compileButton.disabled = false;
   compileButton.addEventListener("click", (_event) => {
