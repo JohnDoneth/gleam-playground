@@ -1,4 +1,4 @@
-[submodule "libs/gleam_stdlib"]
-	path = libs/gleam_stdlib
+[submodule "src/libs/gleam_stdlib"]
+	path = src/libs/gleam_stdlib
 	url = git@github.com:JohnDoneth/stdlib.git
 	branch = patch-1
