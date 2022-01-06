@@ -32,7 +32,7 @@ module.exports = {
         use: [MiniCssExtractPlugin.loader, "css-loader", "postcss-loader"],
       },
       {
-        test: /\.(png|ttf)$/,
+        test: /\.(png|ttf|svg)$/,
         use: ["file-loader"],
       },
     ],
