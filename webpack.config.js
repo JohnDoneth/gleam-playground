@@ -48,7 +48,7 @@ module.exports = {
     preferRelative: true,
     extensions: [".ts", ".js"],
     alias: {
-      "@gleam-wasm": path.resolve(__dirname, "/gleam-wasm"),
+      "@gleam-wasm": path.resolve(__dirname, "./gleam-wasm"),
     },
   },
   devServer: {
