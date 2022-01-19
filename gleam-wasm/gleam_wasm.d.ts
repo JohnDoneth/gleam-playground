@@ -3,15 +3,11 @@
 /**
 * Should be called once to setup any state that persists across compilation
 * cycles.
+* @param {boolean} debug
 */
-export function init(): void;
+export function init(debug: boolean): void;
 /**
-* @param {string} gleam_source
+* @param {any} options
 * @returns {any}
 */
-export function compile_to_js(gleam_source: string): any;
-/**
-* @param {string} erlang_source
-* @returns {any}
-*/
-export function compile_to_erlang(erlang_source: string): any;
+export function compile(options: any): any;

@@ -1,3 +1,18 @@
 # Compiler WASM
 
-This is the output directory of running wasm-pack on the gleam wasm-compiler and is used to compile Gleam to JavaScript and Erlang in the browser.
+```shell
+# Install the build tool
+cargo install wasm-pack
+
+# Build the library
+wasm-pack build
+
+# Or, build and copy to a directory
+wasm-pack build --out-dir /home/${USER}/projects/gleam-playground/gleam-wasm
+```
+
+Run tests using `node` with the compiled WebAssembly.
+
+```shell
+wasm-pack test --node
+```
